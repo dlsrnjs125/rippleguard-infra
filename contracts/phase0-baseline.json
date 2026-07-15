@@ -1,0 +1,27 @@
+{
+  "contractsRepository": "dlsrnjs125/rippleguard-contracts",
+  "contractsPullRequest": 2,
+  "contractsHeadCommitSha": "39b22e40ae10a9ec3678cfac509a7fe6b747eaa4",
+  "contractsMainMergeCommitSha": "a44f39d819fff5fe79db27e236a42e2a861a8b5e",
+  "verifiedDate": "2026-07-15",
+  "eventSchemaVersions": {
+    "loan.application.submitted.v1": "1.1.0",
+    "governance.review.started.v1": "1.0.0",
+    "governance.evidence.requested.v1": "1.0.0",
+    "loan.evidence.updated.v1": "1.0.0",
+    "agent.evaluation.requested.v1": "1.0.0",
+    "agent.evaluation.completed.v1": "1.0.0",
+    "loan.decision.commanded.v1": "1.0.0",
+    "loan.decision.finalized.v1": "1.0.0"
+  },
+  "eventTypes": [
+    "loan.application.submitted.v1",
+    "governance.review.started.v1",
+    "governance.evidence.requested.v1",
+    "loan.evidence.updated.v1",
+    "agent.evaluation.requested.v1",
+    "agent.evaluation.completed.v1",
+    "loan.decision.commanded.v1",
+    "loan.decision.finalized.v1"
+  ]
+}

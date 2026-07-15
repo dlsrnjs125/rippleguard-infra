@@ -1,0 +1,169 @@
+name: rippleguard
+
+services:
+  kafka:
+    image: apache/kafka:3.9.1
+    container_name: rippleguard-kafka
+    environment:
+      CLUSTER_ID: ${KAFKA_KRAFT_CLUSTER_ID:-MkU3OEVBNTcwNTJENDM2Qk}
+      KAFKA_NODE_ID: "1"
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:${KAFKA_EXTERNAL_PORT:-9094}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: "1"
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: "1"
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: "0"
+    ports:
+      - "${KAFKA_EXTERNAL_PORT:-9094}:9094"
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    networks:
+      - rippleguard-platform
+
+  kafka-init:
+    image: apache/kafka:3.9.1
+    container_name: rippleguard-kafka-init
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      KAFKA_BOOTSTRAP_SERVER: kafka:9092
+      KAFKA_TOPIC_PARTITIONS: ${KAFKA_TOPIC_PARTITIONS:-3}
+      KAFKA_TOPIC_REPLICATION_FACTOR: ${KAFKA_TOPIC_REPLICATION_FACTOR:-1}
+    volumes:
+      - ../kafka/topics:/topics:ro
+      - ../kafka/scripts:/scripts:ro
+    command: ["/bin/sh", "/scripts/create-topics.sh"]
+    networks:
+      - rippleguard-platform
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:v0.7.2
+    container_name: rippleguard-kafka-ui
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      KAFKA_CLUSTERS_0_NAME: rippleguard-local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    ports:
+      - "8080:8080"
+    networks:
+      - rippleguard-platform
+
+  loan-postgres:
+    image: postgres:16-alpine
+    container_name: rippleguard-loan-postgres
+    environment:
+      POSTGRES_DB: ${LOAN_POSTGRES_DB:-rippleguard_loan}
+      POSTGRES_USER: ${LOAN_POSTGRES_USER:-rippleguard_loan}
+      POSTGRES_PASSWORD: ${LOAN_POSTGRES_PASSWORD:-change-me-loan-local}
+    ports:
+      - "${LOAN_POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - loan-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - rippleguard-platform
+
+  governance-postgres:
+    image: postgres:16-alpine
+    container_name: rippleguard-governance-postgres
+    environment:
+      POSTGRES_DB: ${GOVERNANCE_POSTGRES_DB:-rippleguard_governance}
+      POSTGRES_USER: ${GOVERNANCE_POSTGRES_USER:-rippleguard_governance}
+      POSTGRES_PASSWORD: ${GOVERNANCE_POSTGRES_PASSWORD:-change-me-governance-local}
+    ports:
+      - "${GOVERNANCE_POSTGRES_PORT:-5434}:5432"
+    volumes:
+      - governance-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - rippleguard-platform
+
+  opa:
+    image: openpolicyagent/opa:0.70.0
+    container_name: rippleguard-opa
+    command: ["run", "--server", "--addr=0.0.0.0:8181", "/policies"]
+    ports:
+      - "${OPA_PORT:-8181}:8181"
+    volumes:
+      - ../opa/policies:/policies:ro
+      - ../opa/bundles:/bundles:ro
+    healthcheck:
+      test: ["CMD", "opa", "eval", "true"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    networks:
+      - rippleguard-platform
+
+  minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    container_name: rippleguard-minio
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-rippleguard_local}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-change-me-minio-local}
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - rippleguard-platform
+
+  minio-init:
+    image: minio/mc:RELEASE.2025-04-16T18-13-26Z
+    container_name: rippleguard-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-rippleguard_local}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-change-me-minio-local}
+      MINIO_DOCUMENT_BUCKET: ${MINIO_DOCUMENT_BUCKET:-rippleguard-documents}
+    volumes:
+      - ../minio/scripts:/scripts:ro
+    entrypoint: ["/bin/sh", "/scripts/init-buckets.sh"]
+    networks:
+      - rippleguard-platform
+
+networks:
+  rippleguard-platform:
+    name: rippleguard-local-platform
+
+volumes:
+  kafka-data:
+  loan-postgres-data:
+  governance-postgres-data:
+  minio-data:

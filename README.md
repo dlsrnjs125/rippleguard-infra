@@ -40,3 +40,5 @@ make platform-clean
 ## 기준 계약
 
 Kafka topic과 이벤트 기준은 `contracts/phase0-baseline.json`에 기록된 contracts commit을 따릅니다.
+
+`make platform-check`는 실행 중인 로컬 플랫폼과 내부 topic manifest를 검증합니다. GitHub의 pinned contracts commit까지 확인하려면 네트워크가 필요한 `make validate-contract-baseline`을 실행합니다.

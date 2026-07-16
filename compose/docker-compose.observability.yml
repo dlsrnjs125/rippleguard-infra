@@ -1,8 +1,1 @@
-name: rippleguard-observability
-
 services: {}
-
-networks:
-  rippleguard-platform:
-    external: true
-    name: rippleguard-local-platform

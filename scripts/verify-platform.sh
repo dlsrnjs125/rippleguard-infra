@@ -10,17 +10,6 @@ if [ ! -f "$ENV_FILE" ]; then
   exit 1
 fi
 
-set -a
-. "$ENV_FILE"
-set +a
-
-: "${LOAN_POSTGRES_DB:=rippleguard_loan}"
-: "${LOAN_POSTGRES_USER:=rippleguard_loan}"
-: "${LOAN_POSTGRES_PASSWORD:?LOAN_POSTGRES_PASSWORD is required}"
-: "${GOVERNANCE_POSTGRES_DB:=rippleguard_governance}"
-: "${GOVERNANCE_POSTGRES_USER:=rippleguard_governance}"
-: "${GOVERNANCE_POSTGRES_PASSWORD:?GOVERNANCE_POSTGRES_PASSWORD is required}"
-
 if ! command -v docker >/dev/null 2>&1; then
   echo "Docker is not installed" >&2
   exit 1
@@ -31,7 +20,20 @@ if ! docker info >/dev/null 2>&1; then
   exit 1
 fi
 
-docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" config >/dev/null
+compose_config="$(docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" config --format json)"
+
+read_compose_env() {
+  service="$1"
+  key="$2"
+  printf '%s' "$compose_config" | python3 "$ROOT_DIR/scripts/read-compose-env.py" "$service" "$key"
+}
+
+LOAN_POSTGRES_DB="$(read_compose_env loan-postgres POSTGRES_DB)"
+LOAN_POSTGRES_USER="$(read_compose_env loan-postgres POSTGRES_USER)"
+LOAN_POSTGRES_PASSWORD="$(read_compose_env loan-postgres POSTGRES_PASSWORD)"
+GOVERNANCE_POSTGRES_DB="$(read_compose_env governance-postgres POSTGRES_DB)"
+GOVERNANCE_POSTGRES_USER="$(read_compose_env governance-postgres POSTGRES_USER)"
+GOVERNANCE_POSTGRES_PASSWORD="$(read_compose_env governance-postgres POSTGRES_PASSWORD)"
 
 wait_for_service() {
   service="$1"
@@ -62,6 +64,13 @@ wait_for_service governance-postgres healthy
 wait_for_service opa healthy
 wait_for_service minio healthy
 wait_for_service kafka-ui running
+
+kafka_container_id="$(docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" ps -q kafka)"
+platform_network="$(docker inspect --format '{{range $name, $_ := .NetworkSettings.Networks}}{{println $name}}{{end}}' "$kafka_container_id" | sed -n '1p')"
+if [ -z "$platform_network" ]; then
+  echo "Could not determine platform Docker network" >&2
+  exit 1
+fi
 
 docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" exec -T kafka /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --list >/dev/null
 docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" run --rm kafka-init /bin/sh /scripts/verify-topics.sh
@@ -114,9 +123,9 @@ if docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" exec -T -e PGPASSWOR
   exit 1
 fi
 
-docker run --rm --network rippleguard-local-platform curlimages/curl:8.11.1 -fsS http://opa:8181/health >/dev/null
-docker run --rm --network rippleguard-local-platform curlimages/curl:8.11.1 -fsS http://minio:9000/minio/health/live >/dev/null
-docker run --rm --network rippleguard-local-platform curlimages/curl:8.11.1 -fsS http://kafka-ui:8080/actuator/health >/dev/null
+docker run --rm --network "$platform_network" curlimages/curl:8.11.1 -fsS http://opa:8181/health >/dev/null
+docker run --rm --network "$platform_network" curlimages/curl:8.11.1 -fsS http://minio:9000/minio/health/live >/dev/null
+docker run --rm --network "$platform_network" curlimages/curl:8.11.1 -fsS http://kafka-ui:8080/actuator/health >/dev/null
 
 docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" run --rm --entrypoint /bin/sh minio-init /scripts/verify-buckets.sh
 

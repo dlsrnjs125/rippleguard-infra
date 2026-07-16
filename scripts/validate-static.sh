@@ -4,8 +4,9 @@ set -eu
 ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 COMPOSE_FILE="$ROOT_DIR/compose/docker-compose.platform.yml"
 OBSERVABILITY_COMPOSE_FILE="$ROOT_DIR/compose/docker-compose.observability.yml"
+ENV_EXAMPLE="$ROOT_DIR/.env.example"
 
-docker compose -f "$COMPOSE_FILE" config >/dev/null
+docker compose --env-file "$ENV_EXAMPLE" -f "$COMPOSE_FILE" config >/dev/null
 docker compose -f "$OBSERVABILITY_COMPOSE_FILE" config >/dev/null
 
 for script in "$ROOT_DIR"/scripts/*.sh "$ROOT_DIR"/kafka/scripts/*.sh "$ROOT_DIR"/minio/scripts/*.sh; do

@@ -17,3 +17,4 @@ jobs:
         with:
           python-version: "3.12"
       - run: make validate-static
+      - run: make validate-contract-baseline

@@ -1,0 +1,86 @@
+name: ${COMPOSE_PROJECT_NAME:-rippleguard}
+
+services:
+  audit-postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${AUDIT_POSTGRES_DB:-rippleguard_audit}
+      POSTGRES_USER: ${AUDIT_POSTGRES_USER:-rippleguard_audit}
+      POSTGRES_PASSWORD: ${AUDIT_POSTGRES_PASSWORD:?AUDIT_POSTGRES_PASSWORD is required}
+    ports:
+      - "${AUDIT_POSTGRES_PORT:-5435}:5432"
+    volumes:
+      - audit-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - rippleguard-platform
+
+  loan-service:
+    image: ${LOAN_SERVICE_IMAGE:?LOAN_SERVICE_IMAGE is required}
+    depends_on:
+      kafka:
+        condition: service_healthy
+      loan-postgres:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+    environment:
+      DB_URL: jdbc:postgresql://loan-postgres:5432/${LOAN_POSTGRES_DB:-rippleguard_loan}
+      DB_USERNAME: ${LOAN_POSTGRES_USER:-rippleguard_loan}
+      DB_PASSWORD: ${LOAN_POSTGRES_PASSWORD:?LOAN_POSTGRES_PASSWORD is required}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      OUTBOX_PUBLISHER_DELAY_MS: ${OUTBOX_PUBLISHER_DELAY_MS:-1000}
+      OUTBOX_INSTANCE_ID: loan-service-phase1
+      INTERNAL_API_SERVICE_TOKEN: ${INTERNAL_API_SERVICE_TOKEN:?INTERNAL_API_SERVICE_TOKEN is required}
+    ports:
+      - "${LOAN_SERVICE_PORT:-18081}:8080"
+    networks:
+      - rippleguard-platform
+
+  governance-service:
+    image: ${GOVERNANCE_SERVICE_IMAGE:?GOVERNANCE_SERVICE_IMAGE is required}
+    depends_on:
+      kafka:
+        condition: service_healthy
+      governance-postgres:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+    environment:
+      DB_URL: jdbc:postgresql://governance-postgres:5432/${GOVERNANCE_POSTGRES_DB:-rippleguard_governance}
+      DB_USERNAME: ${GOVERNANCE_POSTGRES_USER:-rippleguard_governance}
+      DB_PASSWORD: ${GOVERNANCE_POSTGRES_PASSWORD:?GOVERNANCE_POSTGRES_PASSWORD is required}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      OUTBOX_PUBLISHER_DELAY_MS: ${OUTBOX_PUBLISHER_DELAY_MS:-1000}
+      OUTBOX_INSTANCE_ID: governance-service-phase1
+    ports:
+      - "${GOVERNANCE_SERVICE_PORT:-18082}:8080"
+    networks:
+      - rippleguard-platform
+
+  audit-replay-service:
+    image: ${AUDIT_SERVICE_IMAGE:?AUDIT_SERVICE_IMAGE is required}
+    depends_on:
+      kafka:
+        condition: service_healthy
+      audit-postgres:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+    environment:
+      DB_URL: jdbc:postgresql://audit-postgres:5432/${AUDIT_POSTGRES_DB:-rippleguard_audit}
+      DB_USERNAME: ${AUDIT_POSTGRES_USER:-rippleguard_audit}
+      DB_PASSWORD: ${AUDIT_POSTGRES_PASSWORD:?AUDIT_POSTGRES_PASSWORD is required}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "${AUDIT_SERVICE_PORT:-18083}:8080"
+    networks:
+      - rippleguard-platform
+
+volumes:
+  audit-postgres-data:

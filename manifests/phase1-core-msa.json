@@ -1,0 +1,59 @@
+{
+  "name": "phase1-core-msa",
+  "contractBaseline": {
+    "repository": "dlsrnjs125/rippleguard-contracts",
+    "sourceCommit": "29f6c348fd93633476438ee36b3f93a3d036e165"
+  },
+  "services": [
+    {
+      "name": "loan-service",
+      "repository": "dlsrnjs125/rippleguard-loan-service",
+      "sourceCommit": "54ea344a682723d61d9beedf4ade56ee48029c0d",
+      "image": "rippleguard-loan-service:54ea344a6827",
+      "immutableTag": "54ea344a6827",
+      "contractCommit": "29f6c348fd93633476438ee36b3f93a3d036e165",
+      "migrationVersion": "V1__loan_core.sql"
+    },
+    {
+      "name": "governance-service",
+      "repository": "dlsrnjs125/rippleguard-governance-service",
+      "sourceCommit": "29bafba34c47e003fdefafa455924992993721cf",
+      "image": "rippleguard-governance-service:29bafba34c47",
+      "immutableTag": "29bafba34c47",
+      "contractCommit": "29f6c348fd93633476438ee36b3f93a3d036e165",
+      "migrationVersion": "V1__governance_core.sql"
+    },
+    {
+      "name": "audit-replay-service",
+      "repository": "dlsrnjs125/rippleguard-audit-replay-service",
+      "sourceCommit": "e7d9d9f8afb106ecdec16235d79695d88c18b3cd",
+      "sourceMergeNote": "origin/main is a squash merge with no diff from phase/1-audit-foundation at 3d16c9e",
+      "image": "rippleguard-audit-replay-service:e7d9d9f8afb1",
+      "immutableTag": "e7d9d9f8afb1",
+      "contractCommit": "29f6c348fd93633476438ee36b3f93a3d036e165",
+      "migrationVersion": "V1__audit_foundation.sql"
+    }
+  ],
+  "databases": [
+    "loan-postgres",
+    "governance-postgres",
+    "audit-postgres"
+  ],
+  "coreTopics": [
+    "loan.application.submitted.v1",
+    "governance.review.started.v1",
+    "agent.evaluation.requested.v1",
+    "agent.evaluation.completed.v1",
+    "loan.decision.commanded.v1",
+    "loan.decision.finalized.v1"
+  ],
+  "deferred": [
+    "OPA policy integration",
+    "MinIO evidence object flow",
+    "Replay",
+    "Hash Chain",
+    "Version Diff",
+    "Execution Graph",
+    "Graph UI"
+  ]
+}

@@ -1,0 +1,6 @@
+loan.application.submitted.v1
+governance.review.started.v1
+agent.evaluation.requested.v1
+agent.evaluation.completed.v1
+loan.decision.commanded.v1
+loan.decision.finalized.v1

@@ -13,6 +13,7 @@ wait_for_http "$network" http://audit-replay-service:8080/actuator/health
 
 idem_key="phase1-duplicate-$(date +%Y%m%d%H%M%S)"
 payload="$(mktemp)"
+trap 'rm -f "$payload"' EXIT INT TERM
 cat >"$payload" <<EOF
 {
   "schemaVersion": "1.0.0",
@@ -54,6 +55,7 @@ fi
 wait_for_json_condition "$network" "http://loan-service:8080/api/v1/loan-applications/$application_id" "import json,sys; assert json.load(sys.stdin)['status'] == 'FINALIZED'" >/dev/null
 case_response="$(wait_for_json_condition "$network" "http://governance-service:8080/api/v1/decision-cases/by-application/$application_id" "import json,sys; assert json.load(sys.stdin)['status'] == 'RESOLVED'")"
 case_id="$(printf '%s' "$case_response" | json_field caseId)"
+timeline_before="$(wait_for_json_condition "$network" "http://audit-replay-service:8080/api/v1/cases/$case_id/timeline" "import json,sys; data=json.load(sys.stdin); assert data['traceCompleteness'] == 'COMPLETE'; assert len(data['events']) == 6")"
 
 loan_db="${LOAN_POSTGRES_DB:-rippleguard_loan}"
 loan_user="${LOAN_POSTGRES_USER:-rippleguard_loan}"
@@ -63,10 +65,10 @@ governance_user="${GOVERNANCE_POSTGRES_USER:-rippleguard_governance}"
 governance_password="${GOVERNANCE_POSTGRES_PASSWORD:?GOVERNANCE_POSTGRES_PASSWORD is required}"
 
 submitted_payload="$(psql_scalar loan-postgres "$loan_user" "$loan_password" "$loan_db" "select payload from outbox_event where event_type = 'loan.application.submitted.v1' and aggregate_id = '$application_id' limit 1;")"
-printf '%s\n' "$submitted_payload" | compose exec -T kafka /opt/kafka/bin/kafka-console-producer.sh --bootstrap-server kafka:9092 --topic loan.application.submitted.v1 >/dev/null
+printf '%s|%s\n' "$application_id" "$submitted_payload" | compose exec -T kafka /opt/kafka/bin/kafka-console-producer.sh --bootstrap-server kafka:9092 --topic loan.application.submitted.v1 --property parse.key=true --property key.separator='|' >/dev/null
 
 commanded_payload="$(psql_scalar governance-postgres "$governance_user" "$governance_password" "$governance_db" "select payload from outbox_event where event_type = 'loan.decision.commanded.v1' and aggregate_id = '$application_id' limit 1;")"
-printf '%s\n' "$commanded_payload" | compose exec -T kafka /opt/kafka/bin/kafka-console-producer.sh --bootstrap-server kafka:9092 --topic loan.decision.commanded.v1 >/dev/null
+printf '%s|%s\n' "$application_id" "$commanded_payload" | compose exec -T kafka /opt/kafka/bin/kafka-console-producer.sh --bootstrap-server kafka:9092 --topic loan.decision.commanded.v1 --property parse.key=true --property key.separator='|' >/dev/null
 
 sleep 5
 decision_count="$(psql_scalar loan-postgres "$loan_user" "$loan_password" "$loan_db" "select count(*) from loan_decision where application_id = '$application_id';")"
@@ -76,7 +78,19 @@ if [ "$decision_count" != "1" ] || [ "$case_count" != "1" ]; then
   exit 1
 fi
 
-timeline="$(curl_from_network "$network" -fsS "http://audit-replay-service:8080/api/v1/cases/$case_id/timeline")"
-printf '%s' "$timeline" | python3 -c "import json,sys; data=json.load(sys.stdin); assert data['traceCompleteness'] in ('COMPLETE','PARTIAL'); assert len({e['eventId'] for e in data['events']}) == len(data['events'])"
+timeline_after="$(curl_from_network "$network" -fsS "http://audit-replay-service:8080/api/v1/cases/$case_id/timeline")"
+TIMELINE_BEFORE="$timeline_before" TIMELINE_AFTER="$timeline_after" python3 - <<'PY'
+import json
+import os
+
+before = json.loads(os.environ["TIMELINE_BEFORE"])
+after = json.loads(os.environ["TIMELINE_AFTER"])
+before_ids = [event["eventId"] for event in before["events"]]
+after_ids = [event["eventId"] for event in after["events"]]
+assert before["traceCompleteness"] == "COMPLETE"
+assert after["traceCompleteness"] == "COMPLETE"
+assert before_ids == after_ids
+assert len(after_ids) == 6
+PY
 
 echo "Phase 1 duplicate checks passed for applicationId=$application_id caseId=$case_id"

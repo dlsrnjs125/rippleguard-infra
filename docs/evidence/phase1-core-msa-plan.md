@@ -17,6 +17,8 @@ make phase1-check
 make phase1-e2e
 make phase1-duplicate-check
 make phase1-recovery-check
+make phase1-outbox-recovery-check
+make phase1-order-check
 make phase1-down
 ```
 
@@ -30,8 +32,10 @@ make phase1-down
 - Duplicate application requests return the same `applicationId`.
 - Replayed `loan.application.submitted.v1` and `loan.decision.commanded.v1` events do not create duplicate final state.
 - Governance and Audit consumer restart recovery preserves the core flow.
+- Loan outbox unpublished event recovery publishes the stored event after publisher restart.
+- Audit Timeline handles delayed or out-of-order event arrival without exposing duplicate canonical events.
 - Audit Timeline is queryable and does not expose raw financial snapshots, document text, prompts, secrets, or personal identifiers.
 
 ## Actual Results
 
-Run `make phase1-e2e` to generate `docs/evidence/phase1-e2e-summary.md`.
+Run commands generate sanitized per-run summaries under `artifacts/phase1/<run-id>/`. The `artifacts/` directory is ignored so raw run output is not committed.

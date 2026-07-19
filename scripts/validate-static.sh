@@ -55,6 +55,7 @@ python3 -m json.tool "$ROOT_DIR/contracts/phase1-core-baseline.json" >/dev/null
 python3 -m json.tool "$ROOT_DIR/manifests/phase1-core-msa.json" >/dev/null
 python3 "$ROOT_DIR/scripts/check-topic-contracts.py"
 python3 "$ROOT_DIR/scripts/validate-phase1-manifest.py"
+python3 -m py_compile "$ROOT_DIR/scripts/verify-phase1-images.py" "$ROOT_DIR/scripts/validate-timeline-privacy.py"
 "$ROOT_DIR/scripts/check-secrets.sh"
 
 echo "Static infra validation passed"

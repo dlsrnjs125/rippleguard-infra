@@ -8,30 +8,91 @@
     {
       "name": "loan-service",
       "repository": "dlsrnjs125/rippleguard-loan-service",
+      "sourceUrl": "https://github.com/dlsrnjs125/rippleguard-loan-service",
       "sourceCommit": "54ea344a682723d61d9beedf4ade56ee48029c0d",
       "image": "rippleguard-loan-service:54ea344a6827",
+      "imageDigest": null,
       "immutableTag": "54ea344a6827",
+      "ociLabels": {
+        "org.opencontainers.image.revision": "54ea344a682723d61d9beedf4ade56ee48029c0d",
+        "org.opencontainers.image.source": "https://github.com/dlsrnjs125/rippleguard-loan-service"
+      },
       "contractCommit": "29f6c348fd93633476438ee36b3f93a3d036e165",
-      "migrationVersion": "V1__loan_core.sql"
+      "migration": {
+        "version": "1",
+        "description": "loan core",
+        "script": "V1__loan_core.sql",
+        "checksum": null
+      },
+      "produces": [
+        "loan.application.submitted.v1",
+        "loan.evidence.updated.v1",
+        "loan.decision.finalized.v1"
+      ],
+      "consumes": [
+        "governance.review.started.v1",
+        "governance.evidence.requested.v1",
+        "loan.decision.commanded.v1"
+      ]
     },
     {
       "name": "governance-service",
       "repository": "dlsrnjs125/rippleguard-governance-service",
+      "sourceUrl": "https://github.com/dlsrnjs125/rippleguard-governance-service",
       "sourceCommit": "29bafba34c47e003fdefafa455924992993721cf",
       "image": "rippleguard-governance-service:29bafba34c47",
+      "imageDigest": null,
       "immutableTag": "29bafba34c47",
+      "ociLabels": {
+        "org.opencontainers.image.revision": "29bafba34c47e003fdefafa455924992993721cf",
+        "org.opencontainers.image.source": "https://github.com/dlsrnjs125/rippleguard-governance-service"
+      },
       "contractCommit": "29f6c348fd93633476438ee36b3f93a3d036e165",
-      "migrationVersion": "V1__governance_core.sql"
+      "migration": {
+        "version": "1",
+        "description": "governance core",
+        "script": "V1__governance_core.sql",
+        "checksum": null
+      },
+      "produces": [
+        "governance.review.started.v1",
+        "agent.evaluation.requested.v1",
+        "agent.evaluation.completed.v1",
+        "loan.decision.commanded.v1"
+      ],
+      "consumes": [
+        "loan.application.submitted.v1"
+      ]
     },
     {
       "name": "audit-replay-service",
       "repository": "dlsrnjs125/rippleguard-audit-replay-service",
+      "sourceUrl": "https://github.com/dlsrnjs125/rippleguard-audit-replay-service",
       "sourceCommit": "e7d9d9f8afb106ecdec16235d79695d88c18b3cd",
       "sourceMergeNote": "origin/main is a squash merge with no diff from phase/1-audit-foundation at 3d16c9e",
       "image": "rippleguard-audit-replay-service:e7d9d9f8afb1",
+      "imageDigest": null,
       "immutableTag": "e7d9d9f8afb1",
+      "ociLabels": {
+        "org.opencontainers.image.revision": "e7d9d9f8afb106ecdec16235d79695d88c18b3cd",
+        "org.opencontainers.image.source": "https://github.com/dlsrnjs125/rippleguard-audit-replay-service"
+      },
       "contractCommit": "29f6c348fd93633476438ee36b3f93a3d036e165",
-      "migrationVersion": "V1__audit_foundation.sql"
+      "migration": {
+        "version": "1",
+        "description": "audit foundation",
+        "script": "V1__audit_foundation.sql",
+        "checksum": null
+      },
+      "produces": [],
+      "consumes": [
+        "loan.application.submitted.v1",
+        "governance.review.started.v1",
+        "agent.evaluation.requested.v1",
+        "agent.evaluation.completed.v1",
+        "loan.decision.commanded.v1",
+        "loan.decision.finalized.v1"
+      ]
     }
   ],
   "databases": [

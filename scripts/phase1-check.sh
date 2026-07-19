@@ -8,13 +8,9 @@ require_env_file
 load_env
 
 python3 "$ROOT_DIR/scripts/validate-phase1-manifest.py"
+python3 "$ROOT_DIR/scripts/verify-phase1-images.py"
 python3 "$ROOT_DIR/scripts/check-topic-contracts.py"
 "$ROOT_DIR/scripts/check-secrets.sh"
-
-python3 -c 'import json; [print(s["image"]) for s in json.load(open("manifests/phase1-core-msa.json"))["services"]]' |
-while IFS= read -r image; do
-  docker image inspect "$image" >/dev/null
-done
 
 compose config >/dev/null
 
@@ -44,9 +40,23 @@ audit_db="${AUDIT_POSTGRES_DB:-rippleguard_audit}"
 audit_user="${AUDIT_POSTGRES_USER:-rippleguard_audit}"
 audit_password="${AUDIT_POSTGRES_PASSWORD:?AUDIT_POSTGRES_PASSWORD is required}"
 
-psql_scalar loan-postgres "$loan_user" "$loan_password" "$loan_db" "select installed_rank from flyway_schema_history where version = '1' and success = true;" >/dev/null
-psql_scalar governance-postgres "$governance_user" "$governance_password" "$governance_db" "select installed_rank from flyway_schema_history where version = '1' and success = true;" >/dev/null
-psql_scalar audit-postgres "$audit_user" "$audit_password" "$audit_db" "select installed_rank from flyway_schema_history where version = '1' and success = true;" >/dev/null
+verify_migration() {
+  service="$1"
+  postgres="$2"
+  user="$3"
+  password="$4"
+  database="$5"
+  expected="$(python3 -c 'import json,sys; data=json.load(open("manifests/phase1-core-msa.json")); svc=next(s for s in data["services"] if s["name"] == sys.argv[1]); m=svc["migration"]; print("|".join([m["version"], m["description"], m["script"], "" if m["checksum"] is None else str(m["checksum"])]))' "$service")"
+  actual="$(psql_scalar "$postgres" "$user" "$password" "$database" "select version || '|' || description || '|' || script || '|' || coalesce(checksum::text, '') from flyway_schema_history where version = '1' and success = true;")"
+  if [ "$actual" != "$expected" ]; then
+    echo "$service migration mismatch expected=$expected actual=$actual" >&2
+    exit 1
+  fi
+}
+
+verify_migration loan-service loan-postgres "$loan_user" "$loan_password" "$loan_db"
+verify_migration governance-service governance-postgres "$governance_user" "$governance_password" "$governance_db"
+verify_migration audit-replay-service audit-postgres "$audit_user" "$audit_password" "$audit_db"
 
 loan_container_id="$(compose ps -q loan-postgres)"
 governance_container_id="$(compose ps -q governance-postgres)"

@@ -14,6 +14,7 @@ compose stop governance-service audit-replay-service >/dev/null
 
 idem_key="phase1-recovery-$(date +%Y%m%d%H%M%S)"
 payload="$(mktemp)"
+trap 'rm -f "$payload"' EXIT INT TERM
 cat >"$payload" <<EOF
 {
   "schemaVersion": "1.0.0",

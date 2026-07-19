@@ -41,3 +41,10 @@ Audit consumes the six core events and exposes:
 For local testing, the images must exist before `make phase1-up` runs.
 
 If local `phase1` or `local` service images were produced by service repository verification, run `make phase1-tag-local-images` to copy them to the commit-based tags used by this compose stack.
+
+The retag helper refuses unlabeled images. Each source image must expose:
+
+- `org.opencontainers.image.revision`
+- `org.opencontainers.image.source`
+
+`make phase1-check` verifies those labels against `manifests/phase1-core-msa.json`.

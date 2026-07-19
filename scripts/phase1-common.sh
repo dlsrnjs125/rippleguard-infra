@@ -3,6 +3,7 @@
 ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 PHASE1_COMPOSE_FILES="-f $ROOT_DIR/compose/docker-compose.platform.yml -f $ROOT_DIR/compose/docker-compose.phase1.yml"
 ENV_FILE="$ROOT_DIR/.env"
+BASE_ENV_FILE="$ROOT_DIR/.env"
 
 require_env_file() {
   if [ ! -f "$ENV_FILE" ]; then

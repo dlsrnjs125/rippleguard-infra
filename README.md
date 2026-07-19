@@ -32,6 +32,8 @@ make phase1-check
 make phase1-e2e
 make phase1-duplicate-check
 make phase1-recovery-check
+make phase1-outbox-recovery-check
+make phase1-order-check
 make phase1-down
 ```
 

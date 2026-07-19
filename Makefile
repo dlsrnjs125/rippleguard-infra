@@ -1,7 +1,7 @@
 COMPOSE_FILE := compose/docker-compose.platform.yml
 PHASE1_COMPOSE_FILE := compose/docker-compose.phase1.yml
 
-.PHONY: platform-up platform-check platform-down platform-clean validate-static validate-contract-baseline phase1-tag-local-images phase1-up phase1-check phase1-e2e phase1-duplicate-check phase1-recovery-check phase1-down phase1-clean
+.PHONY: platform-up platform-check platform-down platform-clean validate-static validate-contract-baseline phase1-tag-local-images phase1-up phase1-check phase1-e2e phase1-duplicate-check phase1-recovery-check phase1-outbox-recovery-check phase1-order-check phase1-down phase1-clean
 
 platform-up:
 	./scripts/platform-up.sh
@@ -38,6 +38,12 @@ phase1-duplicate-check:
 
 phase1-recovery-check:
 	./scripts/phase1-recovery-check.sh
+
+phase1-outbox-recovery-check:
+	./scripts/phase1-outbox-recovery-check.sh
+
+phase1-order-check:
+	./scripts/phase1-order-check.sh
 
 phase1-down:
 	./scripts/phase1-down.sh

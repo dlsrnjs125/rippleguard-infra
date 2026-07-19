@@ -23,10 +23,25 @@ make platform-check
 make platform-down
 ```
 
+Phase 1 core MSA 통합 검증은 별도 compose overlay를 사용합니다.
+
+```bash
+make phase1-tag-local-images
+make phase1-up
+make phase1-check
+make phase1-e2e
+make phase1-duplicate-check
+make phase1-recovery-check
+make phase1-outbox-recovery-check
+make phase1-order-check
+make phase1-down
+```
+
 로컬 데이터를 포함한 Docker volume까지 삭제하려면 다음 명령을 사용합니다.
 
 ```bash
 make platform-clean
+make phase1-clean
 ```
 
 `platform-clean`은 로컬 인프라 데이터를 삭제합니다.
@@ -42,3 +57,5 @@ make platform-clean
 Kafka topic과 이벤트 기준은 `contracts/phase0-baseline.json`에 기록된 contracts commit을 따릅니다.
 
 `make platform-check`는 실행 중인 로컬 플랫폼과 내부 topic manifest를 검증합니다. GitHub의 pinned contracts commit까지 확인하려면 네트워크가 필요한 `make validate-contract-baseline`을 실행합니다.
+
+Phase 1 서비스 이미지 기준은 `manifests/phase1-core-msa.json`에 기록합니다. 서비스 이미지는 `latest`가 아닌 commit 기반 tag를 사용합니다.

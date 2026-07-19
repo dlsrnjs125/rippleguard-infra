@@ -10,16 +10,16 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-BASELINE = ROOT / "contracts" / "phase0-baseline.json"
-TOPICS = ROOT / "kafka" / "topics" / "phase1-events.txt"
+DEFAULT_BASELINE = ROOT / "contracts" / "phase0-baseline.json"
+DEFAULT_TOPICS = ROOT / "kafka" / "topics" / "phase1-events.txt"
 SCHEMA_NAME = re.compile(
     r"^(?P<event>.+\.v(?P<major>[1-9][0-9]*))\.(?P<minor>[0-9]+)\.(?P<patch>[0-9]+)\.schema\.json$"
 )
 
 
-def read_topics() -> list[str]:
+def read_topics(topics_path: Path) -> list[str]:
     topics: list[str] = []
-    for line in TOPICS.read_text(encoding="utf-8").splitlines():
+    for line in topics_path.read_text(encoding="utf-8").splitlines():
         stripped = line.strip()
         if stripped and not stripped.startswith("#"):
             topics.append(stripped)
@@ -92,12 +92,19 @@ def main() -> int:
         type=Path,
         help="Checked-out rippleguard-contracts repository at the pinned commit.",
     )
+    parser.add_argument("--baseline", type=Path, default=DEFAULT_BASELINE)
+    parser.add_argument("--topics", type=Path, default=DEFAULT_TOPICS)
+    parser.add_argument(
+        "--event-types-key",
+        default="eventTypes",
+        help="Baseline JSON key containing the event type list.",
+    )
     args = parser.parse_args()
 
-    baseline = json.loads(BASELINE.read_text(encoding="utf-8"))
-    manifest_topics = baseline["eventTypes"]
+    baseline = json.loads(args.baseline.read_text(encoding="utf-8"))
+    manifest_topics = baseline[args.event_types_key]
     manifest_versions = baseline["eventSchemaVersions"]
-    infra_topics = read_topics()
+    infra_topics = read_topics(args.topics)
     failures: list[str] = []
 
     failures.extend(compare_lists("manifest eventTypes", manifest_topics, "infra topics", infra_topics))

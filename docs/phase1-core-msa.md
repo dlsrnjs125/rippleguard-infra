@@ -44,7 +44,13 @@ If local `phase1` or `local` service images were produced by service repository 
 
 The retag helper refuses unlabeled images. Each source image must expose:
 
-- `org.opencontainers.image.revision`
-- `org.opencontainers.image.source`
+- `org.opencontainers.image.revision`: full 40-character source commit
+- `org.opencontainers.image.source`: canonical GitHub repository URL
 
 `make phase1-check` verifies those labels against `manifests/phase1-core-msa.json`.
+
+## Known Limitations
+
+- Service images are verified using immutable commit tags and OCI source/revision labels.
+- Registry digest pinning is deferred until images are published to GHCR.
+- Flyway script/version/description are verified; committed checksum baselines are deferred until release images are finalized.

@@ -11,7 +11,6 @@ payload="$(mktemp)"
 trap 'rm -f "$tmp_env" "$payload"' EXIT INT TERM
 
 awk 'BEGIN{seen=0} /^OUTBOX_PUBLISHER_DELAY_MS=/{print "OUTBOX_PUBLISHER_DELAY_MS=600000"; seen=1; next} {print} END{if(!seen) print "OUTBOX_PUBLISHER_DELAY_MS=600000"}' "$BASE_ENV_FILE" >"$tmp_env"
-export PHASE1_ENV_FILE="$tmp_env"
 ENV_FILE="$tmp_env"
 
 compose up -d kafka loan-postgres governance-postgres audit-postgres kafka-ui
@@ -20,6 +19,7 @@ compose up -d loan-service governance-service audit-replay-service
 
 network="$(phase1_network)"
 wait_for_http "$network" http://loan-service:8080/actuator/health
+sleep 3
 
 idem_key="phase1-outbox-recovery-$(date +%Y%m%d%H%M%S)"
 cat >"$payload" <<EOF

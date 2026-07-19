@@ -72,13 +72,38 @@ PY
 application_id="$(sed -n '1p' "$tmpdir/meta")"
 case_id="$(sed -n '2p' "$tmpdir/meta")"
 
-sed -n '1,3p' "$tmpdir/events.jsonl" | compose exec -T kafka /opt/kafka/bin/kafka-console-producer.sh --bootstrap-server kafka:9092 --topic loan.decision.finalized.v1 >/dev/null
+event_type_for_line() {
+  line="$1"
+  sed -n "${line}p" "$tmpdir/events.jsonl" |
+    python3 -c 'import json,sys; print(json.load(sys.stdin)["eventType"])'
+}
+
+produce_event() {
+  line="$1"
+  topic="$2"
+  event_type="$(event_type_for_line "$line")"
+
+  if [ "$event_type" != "$topic" ]; then
+    echo "Refusing to publish event line $line: eventType=$event_type topic=$topic" >&2
+    return 1
+  fi
+
+  sed -n "${line}p" "$tmpdir/events.jsonl" |
+    compose exec -T kafka \
+      /opt/kafka/bin/kafka-console-producer.sh \
+      --bootstrap-server kafka:9092 \
+      --topic "$topic" >/dev/null
+}
+
+produce_event 1 loan.decision.finalized.v1
+produce_event 2 loan.decision.commanded.v1
+produce_event 3 agent.evaluation.completed.v1
 partial="$(wait_for_json_condition "$network" "http://audit-replay-service:8080/api/v1/cases/$case_id/timeline" "import json,sys; data=json.load(sys.stdin); assert data['traceCompleteness'] == 'PARTIAL'; assert len(data['events']) == 3")"
 printf '%s' "$partial" | python3 "$ROOT_DIR/scripts/validate-timeline-privacy.py" >/dev/null
 
-sed -n '4p' "$tmpdir/events.jsonl" | compose exec -T kafka /opt/kafka/bin/kafka-console-producer.sh --bootstrap-server kafka:9092 --topic loan.application.submitted.v1 >/dev/null
-sed -n '5p' "$tmpdir/events.jsonl" | compose exec -T kafka /opt/kafka/bin/kafka-console-producer.sh --bootstrap-server kafka:9092 --topic governance.review.started.v1 >/dev/null
-sed -n '6p' "$tmpdir/events.jsonl" | compose exec -T kafka /opt/kafka/bin/kafka-console-producer.sh --bootstrap-server kafka:9092 --topic agent.evaluation.requested.v1 >/dev/null
+produce_event 4 loan.application.submitted.v1
+produce_event 5 governance.review.started.v1
+produce_event 6 agent.evaluation.requested.v1
 
 complete="$(wait_for_json_condition "$network" "http://audit-replay-service:8080/api/v1/cases/$case_id/timeline" "import json,sys; data=json.load(sys.stdin); assert data['traceCompleteness'] == 'COMPLETE'; assert len(data['events']) == 6; assert [e['occurredAt'] for e in data['events']] == sorted(e['occurredAt'] for e in data['events']); assert len({e['eventId'] for e in data['events']}) == 6")"
 printf '%s' "$complete" | python3 "$ROOT_DIR/scripts/validate-timeline-privacy.py" >/dev/null

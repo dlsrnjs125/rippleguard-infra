@@ -66,7 +66,9 @@ if [ "$pending_count" != "1" ]; then
 fi
 
 awk 'BEGIN{seen=0} /^OUTBOX_PUBLISHER_DELAY_MS=/{print "OUTBOX_PUBLISHER_DELAY_MS=1000"; seen=1; next} {print} END{if(!seen) print "OUTBOX_PUBLISHER_DELAY_MS=1000"}' "$BASE_ENV_FILE" >"$tmp_env"
-compose up -d --force-recreate loan-service >/dev/null
+OUTBOX_PUBLISHER_DELAY_MS=1000
+export OUTBOX_PUBLISHER_DELAY_MS
+compose up -d --force-recreate loan-service governance-service >/dev/null
 wait_for_http "$network" http://loan-service:8080/actuator/health
 wait_for_http "$network" http://governance-service:8080/actuator/health
 wait_for_http "$network" http://audit-replay-service:8080/actuator/health

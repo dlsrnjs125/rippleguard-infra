@@ -7,6 +7,7 @@ set -eu
 require_env_file
 network="$(phase1_network)"
 wait_for_http "$network" http://audit-replay-service:8080/actuator/health
+compose stop loan-service governance-service >/dev/null
 
 tmpdir="$(mktemp -d)"
 trap 'rm -rf "$tmpdir"' EXIT INT TERM

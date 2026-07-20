@@ -63,9 +63,9 @@ verify_checkout() {
     exit 1
   fi
 
-  if [ -n "$(git -C "$repo" status --porcelain --untracked-files=no)" ]; then
-    echo "$service checkout has tracked local changes; refusing immutable image build" >&2
-    git -C "$repo" status --short --untracked-files=no >&2
+  if [ -n "$(git -C "$repo" status --porcelain)" ]; then
+    echo "$service checkout is not clean; refusing immutable image build" >&2
+    git -C "$repo" status --short >&2
     exit 1
   fi
 }

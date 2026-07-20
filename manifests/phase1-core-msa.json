@@ -39,12 +39,12 @@
       "name": "governance-service",
       "repository": "dlsrnjs125/rippleguard-governance-service",
       "sourceUrl": "https://github.com/dlsrnjs125/rippleguard-governance-service",
-      "sourceCommit": "45790ebd5de1c458f87a38b1a067b46c15a59134",
-      "image": "rippleguard-governance-service:45790ebd5de1",
+      "sourceCommit": "4e06e672affddc02d7e6662f3022d00de86bb3b9",
+      "image": "rippleguard-governance-service:4e06e672affd",
       "imageDigest": null,
-      "immutableTag": "45790ebd5de1",
+      "immutableTag": "4e06e672affd",
       "ociLabels": {
-        "org.opencontainers.image.revision": "45790ebd5de1c458f87a38b1a067b46c15a59134",
+        "org.opencontainers.image.revision": "4e06e672affddc02d7e6662f3022d00de86bb3b9",
         "org.opencontainers.image.source": "https://github.com/dlsrnjs125/rippleguard-governance-service"
       },
       "contractCommit": "29f6c348fd93633476438ee36b3f93a3d036e165",

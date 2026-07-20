@@ -4,7 +4,7 @@
 
 - Contracts: `29f6c348fd93633476438ee36b3f93a3d036e165`
 - Loan Service: `e403c0a60ccb1cebf03380832d047f3fc01019e0`
-- Governance Service: `45790ebd5de1c458f87a38b1a067b46c15a59134`
+- Governance Service: `4e06e672affddc02d7e6662f3022d00de86bb3b9`
 - Audit Replay Service: `83ca52edda2f608f90d10694428dff6dffee8a23`
 
 Image and migration details are recorded in `manifests/phase1-core-msa.json`.
@@ -42,5 +42,5 @@ make phase1-down
 
 Run commands generate sanitized per-run summaries under `artifacts/phase1/<run-id>/`. The `artifacts/` directory is ignored so raw run output is not committed.
 
-Current runtime verification is blocked at `make phase1-duplicate-check`.
-See `docs/evidence/phase-1-runtime-verification-blocked.md` for the failure summary, responsible repository, and required follow-up.
+Current runtime verification passed with the Governance event ordering fix included in the service main baseline.
+See `docs/evidence/phase-1-runtime-verification.md` for the command results, image labels, migration evidence, and residual risks.

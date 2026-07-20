@@ -26,7 +26,8 @@ make platform-down
 Phase 1 core MSA 통합 검증은 별도 compose overlay를 사용합니다.
 
 ```bash
-make phase1-tag-local-images
+make phase1-build-images
+make phase1-verify-images
 make phase1-up
 make phase1-check
 make phase1-e2e

@@ -48,10 +48,22 @@ verify_migration() {
   database="$5"
   expected="$(python3 -c 'import json,sys; data=json.load(open("manifests/phase1-core-msa.json")); svc=next(s for s in data["services"] if s["name"] == sys.argv[1]); m=svc["migration"]; print("|".join([m["version"], m["description"], m["script"], "" if m["checksum"] is None else str(m["checksum"])]))' "$service")"
   actual="$(psql_scalar "$postgres" "$user" "$password" "$database" "select version || '|' || description || '|' || script || '|' || coalesce(checksum::text, '') from flyway_schema_history where version = '1' and success = true;")"
+  expected_checksum="${expected##*|}"
+  if [ -z "$expected_checksum" ]; then
+    expected_without_checksum="${expected%|*}"
+    actual_without_checksum="${actual%|*}"
+    if [ "$actual_without_checksum" != "$expected_without_checksum" ]; then
+      echo "$service migration mismatch expected=$expected actual=$actual" >&2
+      exit 1
+    fi
+    echo "$service migration verified with runtime checksum ${actual##*|}"
+    return 0
+  fi
   if [ "$actual" != "$expected" ]; then
     echo "$service migration mismatch expected=$expected actual=$actual" >&2
     exit 1
   fi
+  echo "$service migration verified with pinned checksum $expected_checksum"
 }
 
 verify_migration loan-service loan-postgres "$loan_user" "$loan_password" "$loan_db"

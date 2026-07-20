@@ -3,15 +3,17 @@
 ## Baselines
 
 - Contracts: `29f6c348fd93633476438ee36b3f93a3d036e165`
-- Loan Service: `54ea344a682723d61d9beedf4ade56ee48029c0d`
-- Governance Service: `29bafba34c47e003fdefafa455924992993721cf`
-- Audit Replay Service: `e7d9d9f8afb106ecdec16235d79695d88c18b3cd`
+- Loan Service: `e403c0a60ccb1cebf03380832d047f3fc01019e0`
+- Governance Service: `4e06e672affddc02d7e6662f3022d00de86bb3b9`
+- Audit Replay Service: `83ca52edda2f608f90d10694428dff6dffee8a23`
 
 Image and migration details are recorded in `manifests/phase1-core-msa.json`.
 
 ## Reproducible Commands
 
 ```bash
+make phase1-build-images
+make phase1-verify-images
 make phase1-up
 make phase1-check
 make phase1-e2e
@@ -39,3 +41,6 @@ make phase1-down
 ## Actual Results
 
 Run commands generate sanitized per-run summaries under `artifacts/phase1/<run-id>/`. The `artifacts/` directory is ignored so raw run output is not committed.
+
+Current runtime verification passed with the Governance event ordering fix included in the service main baseline.
+See `docs/evidence/phase-1-runtime-verification.md` for the command results, image labels, migration evidence, and residual risks.

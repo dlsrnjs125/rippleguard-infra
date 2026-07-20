@@ -40,9 +40,9 @@ Audit consumes the six core events and exposes:
 
 For local testing, the images must exist before `make phase1-up` runs.
 
-If local `phase1` or `local` service images were produced by service repository verification, run `make phase1-tag-local-images` to copy them to the commit-based tags used by this compose stack.
+Run `make phase1-build-images` from this repository to package the service checkouts and build commit-tagged images with the OCI build arguments recorded in the manifest. The helper refuses to build if a service checkout HEAD does not match the manifest `sourceCommit`.
 
-The retag helper refuses unlabeled images. Each source image must expose:
+`make phase1-verify-images` verifies each local image exposes:
 
 - `org.opencontainers.image.revision`: full 40-character source commit
 - `org.opencontainers.image.source`: canonical GitHub repository URL

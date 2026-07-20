@@ -52,9 +52,13 @@ if [ "$application_id" != "$second_application_id" ]; then
   exit 1
 fi
 
+echo "Duplicate idempotency verified for applicationId=$application_id"
+echo "Waiting for loan application finalization"
 wait_for_json_condition "$network" "http://loan-service:8080/api/v1/loan-applications/$application_id" "import json,sys; assert json.load(sys.stdin)['status'] == 'FINALIZED'" >/dev/null
+echo "Waiting for governance decision case resolution"
 case_response="$(wait_for_json_condition "$network" "http://governance-service:8080/api/v1/decision-cases/by-application/$application_id" "import json,sys; assert json.load(sys.stdin)['status'] == 'RESOLVED'")"
 case_id="$(printf '%s' "$case_response" | json_field caseId)"
+echo "Waiting for complete audit timeline for caseId=$case_id"
 timeline_before="$(wait_for_json_condition "$network" "http://audit-replay-service:8080/api/v1/cases/$case_id/timeline" "import json,sys; data=json.load(sys.stdin); assert data['traceCompleteness'] == 'COMPLETE'; assert len(data['events']) == 6")"
 
 loan_db="${LOAN_POSTGRES_DB:-rippleguard_loan}"
@@ -70,6 +74,7 @@ printf '%s|%s\n' "$application_id" "$submitted_payload" | compose exec -T kafka 
 commanded_payload="$(psql_scalar governance-postgres "$governance_user" "$governance_password" "$governance_db" "select payload from outbox_event where event_type = 'loan.decision.commanded.v1' and aggregate_id = '$application_id' limit 1;")"
 printf '%s|%s\n' "$application_id" "$commanded_payload" | compose exec -T kafka /opt/kafka/bin/kafka-console-producer.sh --bootstrap-server kafka:9092 --topic loan.decision.commanded.v1 --property parse.key=true --property key.separator='|' >/dev/null
 
+echo "Waiting for duplicate replay consumers to settle"
 sleep 5
 decision_count="$(psql_scalar loan-postgres "$loan_user" "$loan_password" "$loan_db" "select count(*) from loan_decision where application_id = '$application_id';")"
 case_count="$(psql_scalar governance-postgres "$governance_user" "$governance_password" "$governance_db" "select count(*) from decision_case where application_id = '$application_id';")"

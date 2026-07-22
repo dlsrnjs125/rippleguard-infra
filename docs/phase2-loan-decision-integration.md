@@ -15,6 +15,7 @@ Infra owns runtime composition and verification only. Service migrations, busine
 - `audit-postgres`
 - `kafka`
 - `kafka-ui`
+
 OPA and MinIO remain available from the base platform, but this Phase 2 overlay does not start MinIO because model artifacts are mounted from the Agent Runtime repository in read-only bind mount mode. Phase 2 agent evaluation does not use a local LLM, remote LLM, fallback model, mock model, or training path.
 
 ## Runtime Flow
@@ -57,15 +58,18 @@ The Agent Runtime container mounts contract and model artifacts read-only:
 - Model manifests: `${RIPPLEGUARD_AGENT_RUNTIME_REPO}/artifacts/manifests:/app/artifacts/manifests:ro`
 - Model artifacts: `${RIPPLEGUARD_AGENT_RUNTIME_REPO}/artifacts/models:/app/artifacts/models:ro`
 
+The `RIPPLEGUARD_*_REPO` values must be absolute host paths. `make phase2-scaffold-check` fails if a relative repository path is provided.
+
 The pinned model baseline is recorded in `manifests/phase2-loan-decision.json` and validated by `scripts/validate-phase2-manifest.py`.
 
-`make phase2-preflight` validates the same host repository paths used by Compose, including the rendered mount sources from `docker compose config`.
+`make phase2-scaffold-check` validates the same host repository paths used by Compose, including the rendered mount sources from `docker compose config`.
 
 ## Commands
 
 ```bash
 make phase2-build-images
 make phase2-verify-images
+make phase2-scaffold-check
 make phase2-preflight
 make phase2-up
 make phase2-check
@@ -74,7 +78,13 @@ make phase2-e2e
 make phase2-down
 ```
 
-`make phase2-verify` chains the static validation, preflight, stack startup, runtime checks, local LLM absence check, and E2E check. It should remain non-green while the known upstream blockers exist. This PR is integration scaffolding, not a completed happy-path Phase 2 E2E.
+Command intent is intentionally split:
+
+- `make phase2-scaffold-check`: source, manifest, artifact, mount, and compose structure validation. This is expected to pass when sibling checkouts and artifacts are present.
+- `make phase2-preflight`: scaffold check plus image digest and OCI provenance verification. This is expected to fail until image blockers are resolved.
+- `make phase2-verify`: full runtime verification including E2E. This is expected to fail until the production Phase 2 happy path is implemented.
+
+This PR is integration scaffolding, not a completed happy-path Phase 2 E2E.
 
 ## Known Blockers
 

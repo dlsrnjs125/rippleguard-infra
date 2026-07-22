@@ -2,7 +2,7 @@ COMPOSE_FILE := compose/docker-compose.platform.yml
 PHASE1_COMPOSE_FILE := compose/docker-compose.phase1.yml
 PHASE2_COMPOSE_FILE := compose/docker-compose.phase2.yml
 
-.PHONY: platform-up platform-check platform-down platform-clean validate-static validate-contract-baseline phase1-build-images phase1-verify-images phase1-tag-local-images phase1-up phase1-check phase1-e2e phase1-duplicate-check phase1-recovery-check phase1-outbox-recovery-check phase1-order-check phase1-down phase1-clean phase2-build-images phase2-verify-images phase2-preflight phase2-up phase2-check phase2-e2e phase2-local-llm-absent-check phase2-down phase2-clean phase2-verify
+.PHONY: platform-up platform-check platform-down platform-clean validate-static validate-contract-baseline phase1-build-images phase1-verify-images phase1-tag-local-images phase1-up phase1-check phase1-e2e phase1-duplicate-check phase1-recovery-check phase1-outbox-recovery-check phase1-order-check phase1-down phase1-clean phase2-build-images phase2-verify-images phase2-scaffold-check phase2-preflight phase2-up phase2-check phase2-e2e phase2-local-llm-absent-check phase2-down phase2-clean phase2-verify
 
 platform-up:
 	./scripts/platform-up.sh
@@ -63,6 +63,9 @@ phase2-build-images:
 
 phase2-verify-images:
 	./scripts/verify-phase2-images.py
+
+phase2-scaffold-check:
+	./scripts/phase2-scaffold-check.sh
 
 phase2-preflight:
 	./scripts/phase2-preflight.sh

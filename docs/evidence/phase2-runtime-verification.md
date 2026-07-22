@@ -26,6 +26,16 @@ Phase 2 manifest validation:
 python3 scripts/validate-phase2-manifest.py
 ```
 
+Phase 2 scaffolding validation:
+
+```bash
+make phase2-scaffold-check
+```
+
+Expected result with sibling repositories and artifacts available:
+
+- Passes source checkout, manifest, artifact digest, compose config, and rendered mount source checks.
+
 Phase 2 image provenance validation:
 
 ```bash

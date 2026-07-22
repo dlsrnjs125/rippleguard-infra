@@ -60,3 +60,5 @@ Kafka topic과 이벤트 기준은 `contracts/phase0-baseline.json`에 기록된
 `make platform-check`는 실행 중인 로컬 플랫폼과 내부 topic manifest를 검증합니다. GitHub의 pinned contracts commit까지 확인하려면 네트워크가 필요한 `make validate-contract-baseline`을 실행합니다.
 
 Phase 1 서비스 이미지 기준은 `manifests/phase1-core-msa.json`에 기록합니다. 서비스 이미지는 `latest`가 아닌 commit 기반 tag를 사용합니다.
+
+Phase 2 Loan Decision 통합 기준은 `manifests/phase2-loan-decision.json`에 기록합니다. 자세한 실행 절차와 현재 E2E 차단 사유는 `docs/phase2-loan-decision-integration.md`를 참고합니다.

@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import re
@@ -32,6 +33,14 @@ def file_sha256(path: Path) -> str:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--check-artifacts",
+        action="store_true",
+        help="Verify sibling Agent Runtime artifact files exist and match pinned digests.",
+    )
+    args = parser.parse_args()
+
     manifest = load_json(MANIFEST)
     baseline = load_json(CONTRACT_BASELINE)
     failures: list[str] = []
@@ -89,14 +98,20 @@ def main() -> int:
         ("thresholdManifestPath", "thresholdManifestDigest"),
     ):
         path_text = model.get(key, "")
-        expected_digest = model.get(digest_key, "").removeprefix("sha256:")
-        candidate = (ROOT / path_text).resolve()
-        if not candidate.exists():
-            failures.append(f"{key} does not exist: {path_text}")
-            continue
-        actual_digest = file_sha256(candidate)
-        if actual_digest != expected_digest:
-            failures.append(f"{key} digest mismatch: expected {expected_digest}, got {actual_digest}")
+        digest_text = model.get(digest_key, "")
+        if not path_text:
+            failures.append(f"{key} is required")
+        if not SHA256.fullmatch(digest_text):
+            failures.append(f"{digest_key} must be a sha256 digest")
+        if args.check_artifacts:
+            expected_digest = digest_text.removeprefix("sha256:")
+            candidate = (ROOT / path_text).resolve()
+            if not candidate.exists():
+                failures.append(f"{key} does not exist: {path_text}")
+                continue
+            actual_digest = file_sha256(candidate)
+            if actual_digest != expected_digest:
+                failures.append(f"{key} digest mismatch: expected {expected_digest}, got {actual_digest}")
 
     excluded = manifest.get("excludedRuntimeDependencies", {})
     if excluded:

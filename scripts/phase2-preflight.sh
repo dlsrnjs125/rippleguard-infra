@@ -9,7 +9,7 @@ require_command docker
 require_command git
 require_command python3
 
-python3 "$ROOT_DIR/scripts/validate-phase2-manifest.py"
+python3 "$ROOT_DIR/scripts/validate-phase2-manifest.py" --check-artifacts
 
 python3 - "$PHASE2_MANIFEST" "$ROOT_DIR" <<'PY'
 import json

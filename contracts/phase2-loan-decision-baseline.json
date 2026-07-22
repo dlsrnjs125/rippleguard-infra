@@ -1,0 +1,23 @@
+{
+  "contractsRepository": "dlsrnjs125/rippleguard-contracts",
+  "contractsMainCommitSha": "f4012e8b5a0dcd5605b61652a5c39deacb14454b",
+  "schemaSet": "phase2-loan-decision",
+  "eventTypes": [
+    "loan.application.submitted.v1",
+    "governance.review.started.v1",
+    "governance.agent-result.validated.v1",
+    "agent.evaluation.requested.v1",
+    "agent.evaluation.completed.v1",
+    "loan.decision.commanded.v1",
+    "loan.decision.finalized.v1"
+  ],
+  "eventSchemaVersions": {
+    "loan.application.submitted.v1": "1.1.0",
+    "governance.review.started.v1": "1.1.0",
+    "governance.agent-result.validated.v1": "1.0.0",
+    "agent.evaluation.requested.v1": "1.1.0",
+    "agent.evaluation.completed.v1": "1.1.0",
+    "loan.decision.commanded.v1": "1.1.0",
+    "loan.decision.finalized.v1": "1.1.0"
+  }
+}

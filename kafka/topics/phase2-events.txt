@@ -1,0 +1,8 @@
+# Phase 2 local integration topics.
+loan.application.submitted.v1
+governance.review.started.v1
+governance.agent-result.validated.v1
+agent.evaluation.requested.v1
+agent.evaluation.completed.v1
+loan.decision.commanded.v1
+loan.decision.finalized.v1

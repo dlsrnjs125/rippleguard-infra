@@ -44,10 +44,13 @@ def main() -> int:
             if actual != expected:
                 failures.append(f"{image}: label {key} expected {expected}, got {actual!r}")
 
-        if expected_digest:
-            repo_digests = inspected.get("RepoDigests") or []
-            if not any(digest.endswith("@" + expected_digest) or digest == expected_digest for digest in repo_digests):
-                failures.append(f"{image}: digest {expected_digest} not present in RepoDigests {repo_digests}")
+        if not expected_digest:
+            failures.append(f"{image}: imageDigest is not pinned; provenance verification is incomplete")
+            continue
+
+        repo_digests = inspected.get("RepoDigests") or []
+        if not any(digest.endswith("@" + expected_digest) or digest == expected_digest for digest in repo_digests):
+            failures.append(f"{image}: digest {expected_digest} not present in RepoDigests {repo_digests}")
 
     if failures:
         print("\n".join(failures))

@@ -28,6 +28,8 @@
       "sourceCommit": "e403c0a60ccb1cebf03380832d047f3fc01019e0",
       "image": "rippleguard-loan-service:e403c0a60ccb",
       "immutableTag": "e403c0a60ccb",
+      "imageDigest": null,
+      "imageDigestStatus": "blocked-unpublished-local-image",
       "ociLabels": {
         "org.opencontainers.image.revision": "e403c0a60ccb1cebf03380832d047f3fc01019e0",
         "org.opencontainers.image.source": "https://github.com/dlsrnjs125/rippleguard-loan-service"
@@ -50,6 +52,8 @@
       "sourceCommit": "6e5dee34a01429ac017774fcd7a238e2f1415481",
       "image": "rippleguard-governance-service:6e5dee34a014",
       "immutableTag": "6e5dee34a014",
+      "imageDigest": null,
+      "imageDigestStatus": "blocked-unpublished-local-image",
       "ociLabels": {
         "org.opencontainers.image.revision": "6e5dee34a01429ac017774fcd7a238e2f1415481",
         "org.opencontainers.image.source": "https://github.com/dlsrnjs125/rippleguard-governance-service"
@@ -70,6 +74,8 @@
       "sourceCommit": "35121627550e5999a084c123b610f47884aa01f7",
       "image": "rippleguard-agent-runtime:35121627550e",
       "immutableTag": "35121627550e",
+      "imageDigest": null,
+      "imageDigestStatus": "blocked-unpublished-local-image",
       "ociLabels": {
         "org.opencontainers.image.revision": "35121627550e5999a084c123b610f47884aa01f7",
         "org.opencontainers.image.source": "https://github.com/dlsrnjs125/rippleguard-agent-runtime"
@@ -85,6 +91,8 @@
       "sourceCommit": "f3162d3bf3ea2bcfd8d40c929607a84d88054082",
       "image": "rippleguard-audit-replay-service:f3162d3bf3ea",
       "immutableTag": "f3162d3bf3ea",
+      "imageDigest": null,
+      "imageDigestStatus": "blocked-unpublished-local-image",
       "ociLabels": {
         "org.opencontainers.image.revision": "f3162d3bf3ea2bcfd8d40c929607a84d88054082",
         "org.opencontainers.image.source": "https://github.com/dlsrnjs125/rippleguard-audit-replay-service"
@@ -124,6 +132,10 @@
     {
       "repository": "rippleguard-agent-runtime",
       "reason": "Dockerfile does not publish OCI revision/source labels, so Phase 2 image provenance verification fails until the service image adds labels."
+    },
+    {
+      "repository": "rippleguard-infra",
+      "reason": "Service image registry digests are not pinned yet because Phase 2 images have not been published to an immutable registry; image verification must fail rather than skip this identity check."
     },
     {
       "repository": "rippleguard-contracts",

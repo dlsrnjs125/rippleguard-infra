@@ -1,4 +1,4 @@
-# Phase 2 Loan Decision Integration
+# Phase 2 Loan Decision Integration Scaffolding
 
 This repository wires the Phase 2 Loan, Governance, Agent Runtime, and Audit services with Kafka and isolated PostgreSQL databases.
 
@@ -15,9 +15,7 @@ Infra owns runtime composition and verification only. Service migrations, busine
 - `audit-postgres`
 - `kafka`
 - `kafka-ui`
-- `minio`
-
-OPA remains available from the base platform, but Phase 2 agent evaluation does not use a local LLM, remote LLM, fallback model, mock model, or training path.
+OPA and MinIO remain available from the base platform, but this Phase 2 overlay does not start MinIO because model artifacts are mounted from the Agent Runtime repository in read-only bind mount mode. Phase 2 agent evaluation does not use a local LLM, remote LLM, fallback model, mock model, or training path.
 
 ## Runtime Flow
 
@@ -49,15 +47,19 @@ The Phase 2 manifest pins service source commits and expected image tags:
 
 The current Agent Runtime Dockerfile does not expose those OCI labels, so image provenance verification is expected to fail until that upstream Dockerfile is updated.
 
+Registry image digests are also not pinned yet. `make phase2-verify-images` fails when `imageDigest` is missing instead of treating digest verification as optional.
+
 ## Model Artifact Policy
 
 The Agent Runtime container mounts contract and model artifacts read-only:
 
-- Contracts: `../rippleguard-contracts:/app/contracts:ro`
-- Model manifests: `../rippleguard-agent-runtime/artifacts/manifests:/app/artifacts/manifests:ro`
-- Model artifacts: `../rippleguard-agent-runtime/artifacts/models:/app/artifacts/models:ro`
+- Contracts: `${RIPPLEGUARD_CONTRACTS_REPO}:/app/contracts:ro`
+- Model manifests: `${RIPPLEGUARD_AGENT_RUNTIME_REPO}/artifacts/manifests:/app/artifacts/manifests:ro`
+- Model artifacts: `${RIPPLEGUARD_AGENT_RUNTIME_REPO}/artifacts/models:/app/artifacts/models:ro`
 
 The pinned model baseline is recorded in `manifests/phase2-loan-decision.json` and validated by `scripts/validate-phase2-manifest.py`.
+
+`make phase2-preflight` validates the same host repository paths used by Compose, including the rendered mount sources from `docker compose config`.
 
 ## Commands
 
@@ -72,10 +74,11 @@ make phase2-e2e
 make phase2-down
 ```
 
-`make phase2-verify` chains the static validation, preflight, stack startup, runtime checks, local LLM absence check, and E2E check. It should remain non-green while the known upstream blockers exist.
+`make phase2-verify` chains the static validation, preflight, stack startup, runtime checks, local LLM absence check, and E2E check. It should remain non-green while the known upstream blockers exist. This PR is integration scaffolding, not a completed happy-path Phase 2 E2E.
 
 ## Known Blockers
 
 - Loan does not yet provide the materialized Phase 2 feature payload required by Agent Runtime.
 - Agent Runtime image provenance cannot be verified until its Dockerfile supports the OCI labels required by the manifest.
+- Phase 2 service image registry digests are not pinned yet.
 - Contracts documentation and runtime behavior still need a single explicit policy for Phase 2 Governance causation: `causationId = agentRunId`.

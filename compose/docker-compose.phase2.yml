@@ -36,9 +36,9 @@ services:
     ports:
       - "${AGENT_RUNTIME_PORT:?AGENT_RUNTIME_PORT is required}:8080"
     volumes:
-      - ../rippleguard-contracts:/app/contracts:ro
-      - ../rippleguard-agent-runtime/artifacts/manifests:/app/artifacts/manifests:ro
-      - ../rippleguard-agent-runtime/artifacts/models:/app/artifacts/models:ro
+      - ${RIPPLEGUARD_CONTRACTS_REPO:?RIPPLEGUARD_CONTRACTS_REPO is required}:/app/contracts:ro
+      - ${RIPPLEGUARD_AGENT_RUNTIME_REPO:?RIPPLEGUARD_AGENT_RUNTIME_REPO is required}/artifacts/manifests:/app/artifacts/manifests:ro
+      - ${RIPPLEGUARD_AGENT_RUNTIME_REPO:?RIPPLEGUARD_AGENT_RUNTIME_REPO is required}/artifacts/models:/app/artifacts/models:ro
     healthcheck:
       test: ["CMD", "python", "-m", "rippleguard_agent_runtime.app.readiness"]
       interval: 10s
@@ -108,7 +108,7 @@ services:
     ports:
       - "${GOVERNANCE_SERVICE_PORT:-18082}:8080"
     volumes:
-      - ../rippleguard-contracts:/app/contracts:ro
+      - ${RIPPLEGUARD_CONTRACTS_REPO:?RIPPLEGUARD_CONTRACTS_REPO is required}:/app/contracts:ro
     networks:
       - rippleguard-platform
 

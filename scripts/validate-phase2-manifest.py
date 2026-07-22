@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -30,6 +31,14 @@ def file_sha256(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def resolve_artifact_path(path_text: str) -> Path:
+    agent_runtime_repo = os.environ.get("RIPPLEGUARD_AGENT_RUNTIME_REPO")
+    prefix = "../rippleguard-agent-runtime/"
+    if agent_runtime_repo and path_text.startswith(prefix):
+        return Path(agent_runtime_repo, path_text[len(prefix) :]).resolve()
+    return (ROOT / path_text).resolve()
 
 
 def main() -> int:
@@ -77,6 +86,12 @@ def main() -> int:
             failures.append(f"{name}: image must be tagged with source commit prefix {short}")
         if image.endswith(":latest") or ":local" in image:
             failures.append(f"{name}: image tag must not use latest or local aliases")
+        image_digest = service.get("imageDigest")
+        if image_digest is None:
+            if service.get("imageDigestStatus") != "blocked-unpublished-local-image":
+                failures.append(f"{name}: imageDigest is required or must carry blocked-unpublished-local-image status")
+        elif not SHA256.fullmatch(image_digest):
+            failures.append(f"{name}: imageDigest must be a sha256 digest")
         labels = service.get("ociLabels", {})
         if labels.get("org.opencontainers.image.revision") != commit:
             failures.append(f"{name}: OCI revision label must match sourceCommit")
@@ -105,7 +120,7 @@ def main() -> int:
             failures.append(f"{digest_key} must be a sha256 digest")
         if args.check_artifacts:
             expected_digest = digest_text.removeprefix("sha256:")
-            candidate = (ROOT / path_text).resolve()
+            candidate = resolve_artifact_path(path_text)
             if not candidate.exists():
                 failures.append(f"{key} does not exist: {path_text}")
                 continue

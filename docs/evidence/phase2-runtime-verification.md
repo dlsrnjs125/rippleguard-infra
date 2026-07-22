@@ -6,7 +6,7 @@ Infra changes are limited to `rippleguard-infra`.
 
 Pinned source commits:
 
-- `rippleguard-contracts`: `f4012e8a749c74d8e9d80bfa19e60eb963ee8601`
+- `rippleguard-contracts`: `f4012e8b5a0dcd5605b61652a5c39deacb14454b`
 - `rippleguard-loan-service`: `e403c0a60ccb464545a6b68d761d0bf8c05f7435`
 - `rippleguard-governance-service`: `6e5dee34a01429ac017774fcd7a238e2f1415481`
 - `rippleguard-agent-runtime`: `35121627550e5999a084c123b610f47884aa01f7`
@@ -35,6 +35,7 @@ make phase2-verify-images
 Expected current blocker:
 
 - `rippleguard-agent-runtime:35121627550e` cannot pass OCI label verification until the Agent Runtime Dockerfile emits `org.opencontainers.image.revision` and `org.opencontainers.image.source`.
+- Phase 2 service images do not have pinned registry digests yet, so image verification must fail rather than skip immutable image identity verification.
 
 Phase 2 E2E:
 

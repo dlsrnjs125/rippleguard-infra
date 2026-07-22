@@ -7,9 +7,10 @@ PHASE1_COMPOSE_FILE="$ROOT_DIR/compose/docker-compose.phase1.yml"
 PHASE2_COMPOSE_FILE="$ROOT_DIR/compose/docker-compose.phase2.yml"
 OBSERVABILITY_COMPOSE_FILE="$ROOT_DIR/compose/docker-compose.observability.yml"
 STATIC_ENV="$(mktemp "${TMPDIR:-/tmp}/rippleguard-infra-static-env.XXXXXX")"
+PHASE2_COMPOSE_JSON="$(mktemp "${TMPDIR:-/tmp}/rippleguard-phase2-compose.XXXXXX")"
 PYTHON_CACHE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/rippleguard-infra-pycache.XXXXXX")"
 export PYTHONPYCACHEPREFIX="$PYTHON_CACHE_DIR"
-trap 'rm -f "$STATIC_ENV"; rm -rf "$PYTHON_CACHE_DIR"' EXIT HUP INT TERM
+trap 'rm -f "$STATIC_ENV" "$PHASE2_COMPOSE_JSON"; rm -rf "$PYTHON_CACHE_DIR"' EXIT HUP INT TERM
 
 cat >"$STATIC_ENV" <<'EOF'
 COMPOSE_PROJECT_NAME=rippleguard-static
@@ -35,6 +36,11 @@ MINIO_ROOT_PASSWORD=x
 MINIO_API_PORT=9000
 MINIO_CONSOLE_PORT=9001
 MINIO_DOCUMENT_BUCKET=rippleguard-documents
+RIPPLEGUARD_CONTRACTS_REPO=/tmp/rippleguard-contracts
+RIPPLEGUARD_LOAN_REPO=/tmp/rippleguard-loan-service
+RIPPLEGUARD_GOVERNANCE_REPO=/tmp/rippleguard-governance-service
+RIPPLEGUARD_AGENT_RUNTIME_REPO=/tmp/rippleguard-agent-runtime
+RIPPLEGUARD_AUDIT_REPO=/tmp/rippleguard-audit-replay-service
 LOAN_SERVICE_IMAGE=rippleguard-loan-service:e403c0a60ccb
 GOVERNANCE_SERVICE_IMAGE=rippleguard-governance-service:4e06e672affd
 AUDIT_SERVICE_IMAGE=rippleguard-audit-replay-service:83ca52edda2f
@@ -45,10 +51,6 @@ AUDIT_SERVICE_PORT=18083
 AGENT_RUNTIME_PORT=18084
 OUTBOX_PUBLISHER_DELAY_MS=1000
 INTERNAL_API_SERVICE_TOKEN=x
-CONTRACTS_ROOT=../rippleguard-contracts
-MODEL_MANIFEST_PATH=../rippleguard-agent-runtime/artifacts/manifests/phase2-loan-xgboost.v1.0.0.json
-MODEL_ARTIFACT_ROOT=../rippleguard-agent-runtime/artifacts/models
-AGENT_RUNTIME_BASE_URL=http://agent-runtime:8080
 AGENT_RUNTIME_LOAN_DECISION_RUNS_PATH=/internal/v1/loan-decision-agent/runs
 AGENT_RUNTIME_CONNECT_TIMEOUT=PT1S
 AGENT_RUNTIME_RESPONSE_TIMEOUT=PT10S
@@ -70,6 +72,34 @@ EOF
 docker compose --env-file "$STATIC_ENV" -f "$COMPOSE_FILE" config >/dev/null
 docker compose --env-file "$STATIC_ENV" -f "$COMPOSE_FILE" -f "$PHASE1_COMPOSE_FILE" config >/dev/null
 docker compose --env-file "$STATIC_ENV" -f "$COMPOSE_FILE" -f "$PHASE2_COMPOSE_FILE" config >/dev/null
+docker compose --env-file "$STATIC_ENV" -f "$COMPOSE_FILE" -f "$PHASE2_COMPOSE_FILE" config --format json >"$PHASE2_COMPOSE_JSON"
+python3 - "$PHASE2_COMPOSE_JSON" <<'PY'
+import json
+import sys
+
+config = json.load(open(sys.argv[1], encoding="utf-8"))
+expected = {
+    "agent-runtime": {
+        "/app/contracts": "/tmp/rippleguard-contracts",
+        "/app/artifacts/manifests": "/tmp/rippleguard-agent-runtime/artifacts/manifests",
+        "/app/artifacts/models": "/tmp/rippleguard-agent-runtime/artifacts/models",
+    },
+    "governance-service": {
+        "/app/contracts": "/tmp/rippleguard-contracts",
+    },
+}
+failures = []
+for service_name, targets in expected.items():
+    service = config["services"].get(service_name, {})
+    volumes = {volume["target"]: volume["source"] for volume in service.get("volumes", [])}
+    for target, source in targets.items():
+        if volumes.get(target) != source:
+            failures.append(f"{service_name} mount {target} expected {source}, got {volumes.get(target)}")
+
+if failures:
+    print("\n".join(failures))
+    sys.exit(1)
+PY
 docker compose -f "$OBSERVABILITY_COMPOSE_FILE" config >/dev/null
 
 for script in "$ROOT_DIR"/scripts/*.sh "$ROOT_DIR"/kafka/scripts/*.sh "$ROOT_DIR"/minio/scripts/*.sh; do

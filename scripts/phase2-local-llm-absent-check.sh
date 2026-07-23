@@ -23,3 +23,6 @@ if excluded.get("localLlm") is not True or excluded.get("fallbackModel") is not 
     sys.exit(1)
 print("Phase 2 local LLM absence verified")
 PY
+
+load_env
+python3 "$ROOT_DIR/scripts/phase2_e2e.py" phase2-local-llm-absent-check

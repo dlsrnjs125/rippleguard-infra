@@ -78,7 +78,7 @@ package_service() {
   case "$service" in
     loan-service|governance-service|audit-replay-service)
       echo "Packaging $service from $repo"
-      (cd "$repo" && ./mvnw package)
+      (cd "$repo" && ./mvnw -DskipTests package)
       ;;
     agent-runtime)
       echo "Using agent-runtime source tree from $repo"

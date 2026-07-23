@@ -12,6 +12,10 @@ PYTHON_CACHE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/rippleguard-infra-pycache.XXXXXX"
 export PYTHONPYCACHEPREFIX="$PYTHON_CACHE_DIR"
 trap 'rm -f "$STATIC_ENV" "$PHASE2_COMPOSE_JSON"; rm -rf "$PYTHON_CACHE_DIR"' EXIT HUP INT TERM
 
+static_compose() {
+  env -i PATH="$PATH" HOME="${HOME:-}" TMPDIR="${TMPDIR:-/tmp}" docker compose --env-file "$STATIC_ENV" "$@"
+}
+
 cat >"$STATIC_ENV" <<'EOF'
 COMPOSE_PROJECT_NAME=rippleguard-static
 LOAN_POSTGRES_DB=rippleguard_loan
@@ -41,10 +45,10 @@ RIPPLEGUARD_LOAN_REPO=/tmp/rippleguard-loan-service
 RIPPLEGUARD_GOVERNANCE_REPO=/tmp/rippleguard-governance-service
 RIPPLEGUARD_AGENT_RUNTIME_REPO=/tmp/rippleguard-agent-runtime
 RIPPLEGUARD_AUDIT_REPO=/tmp/rippleguard-audit-replay-service
-LOAN_SERVICE_IMAGE=rippleguard-loan-service:e403c0a60ccb
-GOVERNANCE_SERVICE_IMAGE=rippleguard-governance-service:4e06e672affd
-AUDIT_SERVICE_IMAGE=rippleguard-audit-replay-service:83ca52edda2f
-AGENT_RUNTIME_IMAGE=rippleguard-agent-runtime:35121627550e
+LOAN_SERVICE_IMAGE=rippleguard-loan-service:1f78f8c3358f
+GOVERNANCE_SERVICE_IMAGE=rippleguard-governance-service:053206df5d11
+AUDIT_SERVICE_IMAGE=rippleguard-audit-replay-service:e6baae0a1fef
+AGENT_RUNTIME_IMAGE=rippleguard-agent-runtime:25e8c187ee80
 LOAN_SERVICE_PORT=18081
 GOVERNANCE_SERVICE_PORT=18082
 AUDIT_SERVICE_PORT=18083
@@ -69,10 +73,10 @@ PHASE2_MODEL_ARTIFACT_DIGEST=sha256:1780b376723b52ad04630a474c6bd2eeddab2e89caa1
 PHASE2_THRESHOLD_VERSION=threshold.v1.0.0
 EOF
 
-docker compose --env-file "$STATIC_ENV" -f "$COMPOSE_FILE" config >/dev/null
-docker compose --env-file "$STATIC_ENV" -f "$COMPOSE_FILE" -f "$PHASE1_COMPOSE_FILE" config >/dev/null
-docker compose --env-file "$STATIC_ENV" -f "$COMPOSE_FILE" -f "$PHASE2_COMPOSE_FILE" config >/dev/null
-docker compose --env-file "$STATIC_ENV" -f "$COMPOSE_FILE" -f "$PHASE2_COMPOSE_FILE" config --format json >"$PHASE2_COMPOSE_JSON"
+static_compose -f "$COMPOSE_FILE" config >/dev/null
+static_compose -f "$COMPOSE_FILE" -f "$PHASE1_COMPOSE_FILE" config >/dev/null
+static_compose -f "$COMPOSE_FILE" -f "$PHASE2_COMPOSE_FILE" config >/dev/null
+static_compose -f "$COMPOSE_FILE" -f "$PHASE2_COMPOSE_FILE" config --format json >"$PHASE2_COMPOSE_JSON"
 python3 - "$PHASE2_COMPOSE_JSON" <<'PY'
 import json
 import sys

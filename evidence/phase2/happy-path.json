@@ -1,0 +1,155 @@
+{
+  "command": "make phase2-e2e",
+  "commitBaseline": {
+    "repository": "dlsrnjs125/rippleguard-contracts",
+    "schemaSet": "phase2-loan-decision",
+    "sourceCommit": "751f43c88c1bef860c76398eed24b3d60225b931"
+  },
+  "details": {
+    "apiIdentifiers": {
+      "agentRunId": "975993ce-b8a3-4d94-a728-706f2d8a1030",
+      "applicationId": "a2a5e2c7-75cc-4beb-99ec-cf81846bace5",
+      "caseId": "case-a2a5e2c7-75cc-4beb-99ec-cf81846bace5",
+      "evaluationRunId": "760b1686-7e9f-4e2b-9e58-f84ea6d0f6c2",
+      "requestEventId": "717727ef-1b83-4621-9b3b-60ff03c935ae",
+      "validationEventId": "66ce234a-be1e-4725-9d0c-1d99487f8934"
+    },
+    "audit": {
+      "agentRun": {
+        "agentResultDigest": "sha256:aed14eb13a6ffe747520067fae6d708ea81bbb2e511ee5a840313bc1240616a4",
+        "agentResultReference": "agent-result://case-a2a5e2c7-75cc-4beb-99ec-cf81846bace5/975993ce-b8a3-4d94-a728-706f2d8a1030/attempt-1",
+        "agentRunId": "975993ce-b8a3-4d94-a728-706f2d8a1030",
+        "attemptCount": 1,
+        "attempts": [
+          {
+            "attemptId": 1,
+            "attemptStatus": "VALIDATED",
+            "completedAt": "2026-07-24T04:35:32.628821Z",
+            "failureClassification": null,
+            "failureReasonCode": null,
+            "resultDigest": "sha256:aed14eb13a6ffe747520067fae6d708ea81bbb2e511ee5a840313bc1240616a4",
+            "sourceEventId": "66ce234a-be1e-4725-9d0c-1d99487f8934",
+            "startedAt": null
+          }
+        ],
+        "decisionCaseId": "case-a2a5e2c7-75cc-4beb-99ec-cf81846bace5",
+        "evaluationRunId": "760b1686-7e9f-4e2b-9e58-f84ea6d0f6c2",
+        "featureSchemaVersion": null,
+        "latestAttemptId": 1,
+        "modelArtifactDigest": null,
+        "modelVersion": null,
+        "preprocessingVersion": null,
+        "snapshotDigest": null,
+        "snapshotId": null,
+        "snapshotSchemaVersion": null,
+        "snapshotVersion": null,
+        "sourceEventId": "66ce234a-be1e-4725-9d0c-1d99487f8934",
+        "sourceSchemaVersion": "1.0.0",
+        "thresholdVersion": null,
+        "validatedAt": "2026-07-24T04:35:32.628821Z",
+        "validationOutcome": "VALIDATED",
+        "validationReasonCodes": [
+          "SCHEMA_VALID",
+          "MODEL_PROVENANCE_VALID",
+          "SNAPSHOT_MATCHED",
+          "SHAP_PRESENT"
+        ]
+      },
+      "agentRunRelookupStable": {
+        "agentResultDigest": true,
+        "attemptCount": true,
+        "validationOutcome": true
+      },
+      "knownProjectionLimitations": [
+        "Audit Agent Run read model currently exposes nullable Phase 2 provenance fields when validation event payload omits them."
+      ],
+      "pendingCausationStatusForValidationEvent": "ABSENT",
+      "quarantineRowsForValidationEvent": 0,
+      "timelineEvents": [
+        "loan.application.submitted.v1",
+        "governance.review.started.v1",
+        "agent.evaluation.requested.v1",
+        "governance.agent-result.validated.v1"
+      ]
+    },
+    "causation": {
+      "requestEventId": "717727ef-1b83-4621-9b3b-60ff03c935ae",
+      "validationCausationId": "717727ef-1b83-4621-9b3b-60ff03c935ae",
+      "validationCausationIsAgentRunId": false
+    },
+    "governance": {
+      "status": "PROPOSAL_READY",
+      "validationOutcome": "VALIDATED"
+    },
+    "knownLimitations": [
+      "Audit Agent Run read model currently exposes nullable Phase 2 provenance fields when validation event payload omits them."
+    ],
+    "loanFinalState": {
+      "governanceCommandedEventsForApplication": 0,
+      "loanFinalizedEventsForApplication": 0,
+      "status": "UNDER_GOVERNANCE_REVIEW"
+    },
+    "provenance": {
+      "governanceEvaluationRun": {
+        "agentRunId": "975993ce-b8a3-4d94-a728-706f2d8a1030",
+        "featurePayloadDigest": "sha256:d8c3c7571f963596f6fff822f750cc74b4a7370677ccf1bbc3a0b84b01604f0a",
+        "featureSchemaVersion": "phase-2-loan-features.v1.0.0",
+        "modelArtifactDigest": "sha256:1780b376723b52ad04630a474c6bd2eeddab2e89caa13956e76b356595ed79df",
+        "modelVersion": "loan-model.v1.0.0",
+        "preprocessingVersion": "preprocess.v1.0.0",
+        "requestEventId": "717727ef-1b83-4621-9b3b-60ff03c935ae",
+        "snapshotCreatedAt": "2026-07-24T04:35:31.961738Z",
+        "snapshotDigest": "sha256:d8c3c7571f963596f6fff822f750cc74b4a7370677ccf1bbc3a0b84b01604f0a",
+        "snapshotId": "b85808ee-afc5-470a-89ad-b814f954e0f2",
+        "snapshotSchemaVersion": "1.0.0",
+        "thresholdVersion": "threshold.v1.0.0",
+        "validationOutcome": "VALIDATED"
+      },
+      "manifestModelBaseline": {
+        "featureSchemaVersion": "phase-2-loan-features.v1.0.0",
+        "modelArtifactDigest": "sha256:1780b376723b52ad04630a474c6bd2eeddab2e89caa13956e76b356595ed79df",
+        "modelArtifactPath": "../rippleguard-agent-runtime/artifacts/models/phase2-loan-xgboost.v1.0.0.json",
+        "modelManifestDigest": "sha256:feae355ac937e43be18069d6390936d1c4b8630deea92333d6e6de15c514b9e7",
+        "modelManifestPath": "../rippleguard-agent-runtime/artifacts/manifests/phase2-loan-xgboost.v1.0.0.json",
+        "modelName": "phase2-loan-xgboost",
+        "modelVersion": "loan-model.v1.0.0",
+        "preprocessingVersion": "preprocess.v1.0.0",
+        "productionRegistry": false,
+        "storageMode": "read-only bind mount",
+        "thresholdManifestDigest": "sha256:c3a7e45bd4c65e57d3fb935e08213b16d144a4674365c16c0eedfce7c6b4e4ea",
+        "thresholdManifestPath": "../rippleguard-agent-runtime/artifacts/manifests/thresholds.v1.0.0.json",
+        "thresholdVersion": "threshold.v1.0.0"
+      },
+      "manifestRuntimeImageDigest": "sha256:fcc4ae3a47ebd6d0d2c7c769f4f792c4c8999dcf35938ca9429e40d1c40c3733",
+      "runtimeImageDigest": "sha256:fcc4ae3a47ebd6d0d2c7c769f4f792c4c8999dcf35938ca9429e40d1c40c3733",
+      "runtimeReady": {
+        "modelVersion": "loan-model.v1.0.0",
+        "provenanceStatus": "CANDIDATE",
+        "status": "ready"
+      }
+    },
+    "snapshot": {
+      "apiCreatedAt": "2026-07-24T04:35:31.961738Z",
+      "dbCreatedAt": "2026-07-24T04:35:31.961738Z",
+      "featurePayloadDigest": "sha256:d8c3c7571f963596f6fff822f750cc74b4a7370677ccf1bbc3a0b84b01604f0a",
+      "normalizedCreatedAt": "2026-07-24T04:35:31.961738Z",
+      "referenceCreatedAt": "2026-07-24T04:35:31.961738Z",
+      "relookupStable": true,
+      "snapshotDigest": "sha256:d8c3c7571f963596f6fff822f750cc74b4a7370677ccf1bbc3a0b84b01604f0a",
+      "snapshotId": "b85808ee-afc5-470a-89ad-b814f954e0f2",
+      "snapshotVersion": "snapshot-v1"
+    }
+  },
+  "imageDigests": {
+    "agent-runtime": "sha256:fcc4ae3a47ebd6d0d2c7c769f4f792c4c8999dcf35938ca9429e40d1c40c3733",
+    "audit-replay-service": "sha256:2e76510aeeff820b44769cbf922bebf511b71f46633556184daf7ce435fce4cf",
+    "governance-service": "sha256:1d06b97a48411e0df2dc126e7a4edc167c2e4982e54caa5ecf2951d0a363ea55",
+    "loan-service": "sha256:6b2f0f337eb613185e5b2968bad9bd8e400d2262becc0d25158f1e0f286d1d0a"
+  },
+  "knownLimitations": [
+    "Audit Agent Run read model currently exposes nullable Phase 2 provenance fields when validation event payload omits them."
+  ],
+  "modelArtifactDigest": "sha256:1780b376723b52ad04630a474c6bd2eeddab2e89caa13956e76b356595ed79df",
+  "result": "PASS",
+  "timestamp": "2026-07-24T04:35:35.127930Z"
+}

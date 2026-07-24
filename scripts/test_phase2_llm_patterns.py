@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Unit checks for Phase 2 LLM absence pattern matching."""
+"""Unit checks for Phase 2 E2E helper pattern matching."""
 
 from __future__ import annotations
 
@@ -75,6 +75,38 @@ class Phase2LlmPatternTest(unittest.TestCase):
     def test_disabled_log_statement_passes(self) -> None:
         text = "local LLM disabled; integration not configured\n"
         self.assertEqual(phase2_e2e.forbidden_runtime_hits(text), [])
+
+
+class Phase2TimestampParserTest(unittest.TestCase):
+    def test_nanosecond_z_timestamp_truncates_to_microseconds(self) -> None:
+        self.assertEqual(
+            phase2_e2e.instant_text("2026-07-24T04:35:31.961738875Z"),
+            "2026-07-24T04:35:31.961738Z",
+        )
+
+    def test_positive_offset_timestamp_normalizes_to_utc(self) -> None:
+        self.assertEqual(
+            phase2_e2e.instant_text("2026-07-24 13:35:31.961738+09:00"),
+            "2026-07-24T04:35:31.961738Z",
+        )
+
+    def test_fractionless_z_timestamp_uses_microsecond_precision(self) -> None:
+        self.assertEqual(
+            phase2_e2e.instant_text("2026-07-24T04:35:31Z"),
+            "2026-07-24T04:35:31.000000Z",
+        )
+
+    def test_negative_offset_timestamp_normalizes_to_utc(self) -> None:
+        self.assertEqual(
+            phase2_e2e.instant_text("2026-07-23T23:35:31.961738-05:00"),
+            "2026-07-24T04:35:31.961738Z",
+        )
+
+    def test_naive_timestamp_is_treated_as_utc(self) -> None:
+        self.assertEqual(
+            phase2_e2e.instant_text("2026-07-24T04:35:31.961738"),
+            "2026-07-24T04:35:31.961738Z",
+        )
 
 
 if __name__ == "__main__":

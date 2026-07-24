@@ -1,0 +1,106 @@
+{
+  "command": "make phase2-verify",
+  "commitBaseline": {
+    "repository": "dlsrnjs125/rippleguard-contracts",
+    "schemaSet": "phase2-loan-decision",
+    "sourceCommit": "751f43c88c1bef860c76398eed24b3d60225b931"
+  },
+  "details": {
+    "failedGateCount": 10,
+    "gates": [
+      {
+        "exitCode": 0,
+        "name": "validate-static",
+        "result": "PASS"
+      },
+      {
+        "exitCode": 0,
+        "name": "phase2-up",
+        "result": "PASS"
+      },
+      {
+        "exitCode": 0,
+        "name": "phase2-check",
+        "result": "PASS"
+      },
+      {
+        "exitCode": 0,
+        "name": "phase2-local-llm-absent-check",
+        "result": "PASS"
+      },
+      {
+        "exitCode": 0,
+        "name": "phase2-e2e",
+        "result": "PASS"
+      },
+      {
+        "exitCode": 2,
+        "name": "phase2-retry-check",
+        "result": "FAIL"
+      },
+      {
+        "exitCode": 2,
+        "name": "phase2-timeout-check",
+        "result": "FAIL"
+      },
+      {
+        "exitCode": 2,
+        "name": "phase2-duplicate-request-check",
+        "result": "FAIL"
+      },
+      {
+        "exitCode": 2,
+        "name": "phase2-duplicate-result-check",
+        "result": "FAIL"
+      },
+      {
+        "exitCode": 2,
+        "name": "phase2-conflict-check",
+        "result": "FAIL"
+      },
+      {
+        "exitCode": 2,
+        "name": "phase2-artifact-digest-failure-check",
+        "result": "FAIL"
+      },
+      {
+        "exitCode": 2,
+        "name": "phase2-missing-artifact-check",
+        "result": "FAIL"
+      },
+      {
+        "exitCode": 2,
+        "name": "phase2-contract-mismatch-check",
+        "result": "FAIL"
+      },
+      {
+        "exitCode": 2,
+        "name": "phase2-snapshot-mismatch-check",
+        "result": "FAIL"
+      },
+      {
+        "exitCode": 2,
+        "name": "phase2-recovery-check",
+        "result": "FAIL"
+      },
+      {
+        "exitCode": 0,
+        "name": "phase2-reproducibility-check",
+        "result": "PASS"
+      }
+    ],
+    "releaseManifestStatus": "BLOCKED"
+  },
+  "imageDigests": {
+    "agent-runtime": "sha256:fcc4ae3a47ebd6d0d2c7c769f4f792c4c8999dcf35938ca9429e40d1c40c3733",
+    "audit-replay-service": "sha256:2e76510aeeff820b44769cbf922bebf511b71f46633556184daf7ce435fce4cf",
+    "governance-service": "sha256:1d06b97a48411e0df2dc126e7a4edc167c2e4982e54caa5ecf2951d0a363ea55",
+    "loan-service": "sha256:6b2f0f337eb613185e5b2968bad9bd8e400d2262becc0d25158f1e0f286d1d0a"
+  },
+  "knownLimitations": [
+    "FAILURE_DRILLS_REQUIRE_REAL_INJECTION"
+  ],
+  "modelArtifactDigest": "sha256:1780b376723b52ad04630a474c6bd2eeddab2e89caa13956e76b356595ed79df",
+  "result": "FAIL",
+  "timestamp": "2026-07-24T04:35:36.621404Z"
+}

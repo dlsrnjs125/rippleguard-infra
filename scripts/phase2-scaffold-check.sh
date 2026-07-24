@@ -47,6 +47,12 @@ for name, (env_name, expected_commit) in env_by_name.items():
         failures.append(f"{name}: checkout not found at {repo}")
         continue
     actual_commit = subprocess.check_output(["git", "-C", str(repo), "rev-parse", "HEAD"], text=True).strip()
+    branch = subprocess.check_output(["git", "-C", str(repo), "symbolic-ref", "--short", "HEAD"], text=True).strip()
+    origin_main = subprocess.check_output(["git", "-C", str(repo), "rev-parse", "origin/main"], text=True).strip()
+    if branch != "main":
+        failures.append(f"{name}: checkout must be on main, actual={branch}")
+    if actual_commit != origin_main:
+        failures.append(f"{name}: HEAD must match origin/main expected={origin_main} actual={actual_commit}")
     if actual_commit != expected_commit:
         failures.append(f"{name}: HEAD mismatch expected={expected_commit} actual={actual_commit}")
     status = subprocess.check_output(["git", "-C", str(repo), "status", "--porcelain"], text=True)

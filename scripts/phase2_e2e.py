@@ -128,6 +128,26 @@ def baseline_context() -> dict[str, Any]:
     }
 
 
+def manifest_baseline_context() -> dict[str, Any]:
+    manifest = load_manifest()
+    return {
+        "contractBaseline": manifest["contractBaseline"],
+        "modelBaseline": manifest["modelBaseline"],
+        "runtimeImageDigest": manifest["runtimeImageDigest"],
+        "services": [
+            {
+                "name": service["name"],
+                "repository": service["repository"],
+                "sourceCommit": service["sourceCommit"],
+                "image": service["image"],
+                "imageDigest": service["imageDigest"],
+                "ociLabels": service["ociLabels"],
+            }
+            for service in manifest["services"]
+        ],
+    }
+
+
 def write_report(name: str, result: str, command: str, details: dict[str, Any]) -> None:
     EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
     report = {
@@ -141,6 +161,11 @@ def write_report(name: str, result: str, command: str, details: dict[str, Any]) 
         "knownLimitations": [],
     }
     (EVIDENCE_DIR / f"{name}.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def fail_report(name: str, command: str, failure: str, details: dict[str, Any] | None = None) -> None:
+    payload = {"failure": failure, **(details or {})}
+    write_report(name, "FAIL", command, payload)
 
 
 def loan_payload(idempotency_key: str) -> dict[str, Any]:
@@ -217,17 +242,18 @@ def happy_path(command: str) -> dict[str, Any]:
         f"{loan_url}/internal/api/v1/loan-applications/{application_id}/phase2-feature-snapshots/{snapshot_version}",
         headers={"X-Internal-Service-Token": token},
     )
-    case = wait_for(
-        "Governance PROPOSAL_READY",
-        lambda: (
-            item
-            if (item := http_json("GET", f"{governance_url}/api/v1/decision-cases/by-application/{application_id}"))[
-                "status"
-            ]
-            == "PROPOSAL_READY"
-            else None
-        ),
-    )
+    def proposal_ready() -> dict[str, Any] | None:
+        item = http_json("GET", f"{governance_url}/api/v1/decision-cases/by-application/{application_id}")
+        if item["status"] == "PROPOSAL_READY":
+            return item
+        if item["status"] in {"BLOCKED", "VALIDATION_REQUIRED", "VERIFICATION_REQUIRED", "NON_RETRYABLE"}:
+            raise RuntimeError(
+                "Governance reached terminal non-ready status "
+                f"status={item['status']} reasonCode={item.get('reasonCode')}"
+            )
+        return None
+
+    case = wait_for("Governance PROPOSAL_READY", proposal_ready)
     evaluation_run_id = case["evaluationRunId"]
     case_id = case["caseId"]
     run_rows = wait_for(
@@ -294,8 +320,25 @@ def happy_path(command: str) -> dict[str, Any]:
 
 
 def static_gate(name: str, command: str, failure_classification: str, extra: dict[str, Any] | None = None) -> None:
-    details = {"failureClassification": failure_classification, **(extra or {}), "baseline": baseline_context()}
+    details = {"failureClassification": failure_classification, **(extra or {}), "baseline": manifest_baseline_context()}
     write_report(name, "PASS", command, details)
+
+
+def blocked_drill(name: str, command: str, failure_classification: str) -> None:
+    write_report(
+        name,
+        "BLOCKED",
+        command,
+        {
+            "failureClassification": failure_classification,
+            "reason": "REAL_FAILURE_INJECTION_NOT_IMPLEMENTED",
+            "required": (
+                "This drill must exercise real service/API/container/artifact behavior. "
+                "Static PASS evidence is intentionally rejected."
+            ),
+            "baseline": manifest_baseline_context(),
+        },
+    )
 
 
 def artifact_checks(command: str) -> None:
@@ -324,13 +367,17 @@ def main() -> int:
     parser.add_argument("check")
     args = parser.parse_args()
     command = f"make {args.check}"
-    if args.check == "phase2-e2e":
-        write_report("happy-path", "PASS", command, happy_path(command))
-    elif args.check == "phase2-reproducibility-check":
-        artifact_checks(command)
-    elif args.check == "phase2-local-llm-absent-check":
-        static_gate("local-llm-absent", command, "LOCAL_LLM_ABSENT", {"localLlm": False, "remoteLlm": False})
-    else:
+    try:
+        if args.check == "phase2-e2e":
+            write_report("happy-path", "PASS", command, happy_path(command))
+            return 0
+        if args.check == "phase2-reproducibility-check":
+            artifact_checks(command)
+            return 0
+        if args.check == "phase2-local-llm-absent-check":
+            static_gate("local-llm-absent", command, "LOCAL_LLM_ABSENT", {"localLlm": False, "remoteLlm": False})
+            return 0
+
         mapping = {
             "phase2-retry-check": ("retry", "RETRYABLE"),
             "phase2-timeout-check": ("timeout", "RETRYABLE"),
@@ -346,8 +393,12 @@ def main() -> int:
         if args.check not in mapping:
             raise SystemExit(f"unknown check: {args.check}")
         report_name, classification = mapping[args.check]
-        static_gate(report_name, command, classification)
-    return 0
+        blocked_drill(report_name, command, classification)
+        return 2
+    except Exception as exc:
+        report_name = "happy-path" if args.check == "phase2-e2e" else args.check.replace("phase2-", "").replace("-check", "")
+        fail_report(report_name, command, str(exc), {"baseline": baseline_context()})
+        raise
 
 
 if __name__ == "__main__":

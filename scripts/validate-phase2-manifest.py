@@ -67,6 +67,23 @@ def main() -> int:
     if manifest.get("topics") != expected_topics:
         failures.append("manifest topics must exactly match kafka/topics/phase2-events.txt")
 
+    publication_status = manifest.get("publicationStatus")
+    verification = manifest.get("verification", {})
+    if publication_status == "BLOCKED":
+        if verification.get("status") != "FAILED":
+            failures.append("blocked Phase 2 manifest must record verification.status=FAILED")
+        if verification.get("verifiedAt"):
+            failures.append("blocked Phase 2 manifest must not carry verification.verifiedAt")
+        if not manifest.get("knownBlockers"):
+            failures.append("blocked Phase 2 manifest must list knownBlockers")
+    elif publication_status == "PUBLISHED":
+        if verification.get("status") != "PASS" or not verification.get("verifiedAt"):
+            failures.append("published Phase 2 manifest must carry passing verification and verifiedAt")
+        if manifest.get("knownBlockers"):
+            failures.append("published Phase 2 manifest must not list knownBlockers")
+    else:
+        failures.append("publicationStatus must be BLOCKED or PUBLISHED")
+
     event_types = baseline.get("eventTypes", [])
     missing_topic_events = [event_type for event_type in event_types if event_type not in expected_topics]
     if missing_topic_events:

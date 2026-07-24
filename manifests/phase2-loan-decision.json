@@ -121,13 +121,42 @@
     "loan.decision.finalized.v1"
   ],
   "runtimeImageDigest": "sha256:b6a035bfae920e89f1753e17e958861a2054902a0a4d7c1efde7844f64390a34",
+  "publicationStatus": "BLOCKED",
+  "knownBlockers": [
+    {
+      "reason": "SNAPSHOT_CREATED_AT_PRECISION_MISMATCH",
+      "classification": "SNAPSHOT_DIGEST_MISMATCH",
+      "status": "BLOCKED",
+      "description": "Loan persists created_at at PostgreSQL microsecond precision while snapshotReference.snapshotCreatedAt preserves nanosecond precision. Governance compares the API identity and reference identity strictly, so the happy path blocks before PROPOSAL_READY.",
+      "requiredFix": "Align Loan Service snapshot reference creation with the persisted createdAt identity, or normalize the persisted identity before Governance verification without weakening digest validation."
+    },
+    {
+      "reason": "FAILURE_DRILLS_REQUIRE_REAL_INJECTION",
+      "status": "BLOCKED",
+      "description": "Retry, timeout, duplicate, conflict, artifact, contract, snapshot, and recovery drills must use real service/API/container/artifact injection before this manifest can be promoted to a published Phase 2 baseline."
+    }
+  ],
   "verification": {
-    "verifiedAt": "2026-07-23T11:57:40+09:00",
-    "commands": [
-      "make validate-static",
-      "make phase2-preflight",
-      "make phase2-verify-images",
-      "make phase2-verify"
+    "status": "FAILED",
+    "attemptedAt": "2026-07-23T11:57:40+09:00",
+    "attemptedCommands": [
+      {
+        "command": "make validate-static",
+        "result": "PASS"
+      },
+      {
+        "command": "make phase2-preflight",
+        "result": "PASS"
+      },
+      {
+        "command": "make phase2-verify-images",
+        "result": "PASS"
+      },
+      {
+        "command": "make phase2-verify",
+        "result": "FAIL",
+        "failure": "SNAPSHOT_DIGEST_MISMATCH before PROPOSAL_READY"
+      }
     ],
     "evidenceDirectory": "evidence/phase2",
     "kafkaOrderingEvidence": "Kafka ordering is per topic-partition only. Phase 2 request and validation events use separate topics, so Audit bounded pending causation reconciliation is required and verified."

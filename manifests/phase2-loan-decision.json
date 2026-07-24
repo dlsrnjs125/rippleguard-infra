@@ -136,7 +136,7 @@
   ],
   "verification": {
     "status": "FAILED",
-    "attemptedAt": "2026-07-24T03:02:54.768409Z",
+    "attemptedAt": "2026-07-24T04:35:36.621404Z",
     "attemptedCommands": [
       {
         "command": "make validate-static",

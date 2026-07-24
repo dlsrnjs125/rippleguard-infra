@@ -7,33 +7,33 @@
   },
   "details": {
     "apiIdentifiers": {
-      "agentRunId": "e88897c6-150b-4a09-b983-ed352604840d",
-      "applicationId": "5e98838f-3896-4388-b695-9743a8d6727c",
-      "caseId": "case-5e98838f-3896-4388-b695-9743a8d6727c",
-      "evaluationRunId": "57e78a22-f2ee-4ada-96da-049613ac8804",
-      "requestEventId": "2a1280e5-2398-45e6-9b49-d146aa048098",
-      "validationEventId": "d343bf8f-ac52-4068-a4c6-54ac2c017ece"
+      "agentRunId": "975993ce-b8a3-4d94-a728-706f2d8a1030",
+      "applicationId": "a2a5e2c7-75cc-4beb-99ec-cf81846bace5",
+      "caseId": "case-a2a5e2c7-75cc-4beb-99ec-cf81846bace5",
+      "evaluationRunId": "760b1686-7e9f-4e2b-9e58-f84ea6d0f6c2",
+      "requestEventId": "717727ef-1b83-4621-9b3b-60ff03c935ae",
+      "validationEventId": "66ce234a-be1e-4725-9d0c-1d99487f8934"
     },
     "audit": {
       "agentRun": {
-        "agentResultDigest": "sha256:e8e643cfe44ed04cfd45809d60f3699b2f1ce1150abbf0e7465653da0f1160d6",
-        "agentResultReference": "agent-result://case-5e98838f-3896-4388-b695-9743a8d6727c/e88897c6-150b-4a09-b983-ed352604840d/attempt-1",
-        "agentRunId": "e88897c6-150b-4a09-b983-ed352604840d",
+        "agentResultDigest": "sha256:aed14eb13a6ffe747520067fae6d708ea81bbb2e511ee5a840313bc1240616a4",
+        "agentResultReference": "agent-result://case-a2a5e2c7-75cc-4beb-99ec-cf81846bace5/975993ce-b8a3-4d94-a728-706f2d8a1030/attempt-1",
+        "agentRunId": "975993ce-b8a3-4d94-a728-706f2d8a1030",
         "attemptCount": 1,
         "attempts": [
           {
             "attemptId": 1,
             "attemptStatus": "VALIDATED",
-            "completedAt": "2026-07-24T03:02:50.202303Z",
+            "completedAt": "2026-07-24T04:35:32.628821Z",
             "failureClassification": null,
             "failureReasonCode": null,
-            "resultDigest": "sha256:e8e643cfe44ed04cfd45809d60f3699b2f1ce1150abbf0e7465653da0f1160d6",
-            "sourceEventId": "d343bf8f-ac52-4068-a4c6-54ac2c017ece",
+            "resultDigest": "sha256:aed14eb13a6ffe747520067fae6d708ea81bbb2e511ee5a840313bc1240616a4",
+            "sourceEventId": "66ce234a-be1e-4725-9d0c-1d99487f8934",
             "startedAt": null
           }
         ],
-        "decisionCaseId": "case-5e98838f-3896-4388-b695-9743a8d6727c",
-        "evaluationRunId": "57e78a22-f2ee-4ada-96da-049613ac8804",
+        "decisionCaseId": "case-a2a5e2c7-75cc-4beb-99ec-cf81846bace5",
+        "evaluationRunId": "760b1686-7e9f-4e2b-9e58-f84ea6d0f6c2",
         "featureSchemaVersion": null,
         "latestAttemptId": 1,
         "modelArtifactDigest": null,
@@ -43,10 +43,10 @@
         "snapshotId": null,
         "snapshotSchemaVersion": null,
         "snapshotVersion": null,
-        "sourceEventId": "d343bf8f-ac52-4068-a4c6-54ac2c017ece",
+        "sourceEventId": "66ce234a-be1e-4725-9d0c-1d99487f8934",
         "sourceSchemaVersion": "1.0.0",
         "thresholdVersion": null,
-        "validatedAt": "2026-07-24T03:02:50.202303Z",
+        "validatedAt": "2026-07-24T04:35:32.628821Z",
         "validationOutcome": "VALIDATED",
         "validationReasonCodes": [
           "SCHEMA_VALID",
@@ -55,6 +55,16 @@
           "SHAP_PRESENT"
         ]
       },
+      "agentRunRelookupStable": {
+        "agentResultDigest": true,
+        "attemptCount": true,
+        "validationOutcome": true
+      },
+      "knownProjectionLimitations": [
+        "Audit Agent Run read model currently exposes nullable Phase 2 provenance fields when validation event payload omits them."
+      ],
+      "pendingCausationStatusForValidationEvent": "ABSENT",
+      "quarantineRowsForValidationEvent": 0,
       "timelineEvents": [
         "loan.application.submitted.v1",
         "governance.review.started.v1",
@@ -63,23 +73,70 @@
       ]
     },
     "causation": {
-      "requestEventId": "2a1280e5-2398-45e6-9b49-d146aa048098",
-      "validationCausationId": "2a1280e5-2398-45e6-9b49-d146aa048098",
+      "requestEventId": "717727ef-1b83-4621-9b3b-60ff03c935ae",
+      "validationCausationId": "717727ef-1b83-4621-9b3b-60ff03c935ae",
       "validationCausationIsAgentRunId": false
     },
     "governance": {
       "status": "PROPOSAL_READY",
       "validationOutcome": "VALIDATED"
     },
+    "knownLimitations": [
+      "Audit Agent Run read model currently exposes nullable Phase 2 provenance fields when validation event payload omits them."
+    ],
     "loanFinalState": {
       "governanceCommandedEventsForApplication": 0,
       "loanFinalizedEventsForApplication": 0,
       "status": "UNDER_GOVERNANCE_REVIEW"
     },
+    "provenance": {
+      "governanceEvaluationRun": {
+        "agentRunId": "975993ce-b8a3-4d94-a728-706f2d8a1030",
+        "featurePayloadDigest": "sha256:d8c3c7571f963596f6fff822f750cc74b4a7370677ccf1bbc3a0b84b01604f0a",
+        "featureSchemaVersion": "phase-2-loan-features.v1.0.0",
+        "modelArtifactDigest": "sha256:1780b376723b52ad04630a474c6bd2eeddab2e89caa13956e76b356595ed79df",
+        "modelVersion": "loan-model.v1.0.0",
+        "preprocessingVersion": "preprocess.v1.0.0",
+        "requestEventId": "717727ef-1b83-4621-9b3b-60ff03c935ae",
+        "snapshotCreatedAt": "2026-07-24T04:35:31.961738Z",
+        "snapshotDigest": "sha256:d8c3c7571f963596f6fff822f750cc74b4a7370677ccf1bbc3a0b84b01604f0a",
+        "snapshotId": "b85808ee-afc5-470a-89ad-b814f954e0f2",
+        "snapshotSchemaVersion": "1.0.0",
+        "thresholdVersion": "threshold.v1.0.0",
+        "validationOutcome": "VALIDATED"
+      },
+      "manifestModelBaseline": {
+        "featureSchemaVersion": "phase-2-loan-features.v1.0.0",
+        "modelArtifactDigest": "sha256:1780b376723b52ad04630a474c6bd2eeddab2e89caa13956e76b356595ed79df",
+        "modelArtifactPath": "../rippleguard-agent-runtime/artifacts/models/phase2-loan-xgboost.v1.0.0.json",
+        "modelManifestDigest": "sha256:feae355ac937e43be18069d6390936d1c4b8630deea92333d6e6de15c514b9e7",
+        "modelManifestPath": "../rippleguard-agent-runtime/artifacts/manifests/phase2-loan-xgboost.v1.0.0.json",
+        "modelName": "phase2-loan-xgboost",
+        "modelVersion": "loan-model.v1.0.0",
+        "preprocessingVersion": "preprocess.v1.0.0",
+        "productionRegistry": false,
+        "storageMode": "read-only bind mount",
+        "thresholdManifestDigest": "sha256:c3a7e45bd4c65e57d3fb935e08213b16d144a4674365c16c0eedfce7c6b4e4ea",
+        "thresholdManifestPath": "../rippleguard-agent-runtime/artifacts/manifests/thresholds.v1.0.0.json",
+        "thresholdVersion": "threshold.v1.0.0"
+      },
+      "manifestRuntimeImageDigest": "sha256:fcc4ae3a47ebd6d0d2c7c769f4f792c4c8999dcf35938ca9429e40d1c40c3733",
+      "runtimeImageDigest": "sha256:fcc4ae3a47ebd6d0d2c7c769f4f792c4c8999dcf35938ca9429e40d1c40c3733",
+      "runtimeReady": {
+        "modelVersion": "loan-model.v1.0.0",
+        "provenanceStatus": "CANDIDATE",
+        "status": "ready"
+      }
+    },
     "snapshot": {
+      "apiCreatedAt": "2026-07-24T04:35:31.961738Z",
+      "dbCreatedAt": "2026-07-24T04:35:31.961738Z",
       "featurePayloadDigest": "sha256:d8c3c7571f963596f6fff822f750cc74b4a7370677ccf1bbc3a0b84b01604f0a",
+      "normalizedCreatedAt": "2026-07-24T04:35:31.961738Z",
+      "referenceCreatedAt": "2026-07-24T04:35:31.961738Z",
+      "relookupStable": true,
       "snapshotDigest": "sha256:d8c3c7571f963596f6fff822f750cc74b4a7370677ccf1bbc3a0b84b01604f0a",
-      "snapshotId": "2d688051-ecec-4ea7-bef8-73c02d75c678",
+      "snapshotId": "b85808ee-afc5-470a-89ad-b814f954e0f2",
       "snapshotVersion": "snapshot-v1"
     }
   },
@@ -89,8 +146,10 @@
     "governance-service": "sha256:1d06b97a48411e0df2dc126e7a4edc167c2e4982e54caa5ecf2951d0a363ea55",
     "loan-service": "sha256:6b2f0f337eb613185e5b2968bad9bd8e400d2262becc0d25158f1e0f286d1d0a"
   },
-  "knownLimitations": [],
+  "knownLimitations": [
+    "Audit Agent Run read model currently exposes nullable Phase 2 provenance fields when validation event payload omits them."
+  ],
   "modelArtifactDigest": "sha256:1780b376723b52ad04630a474c6bd2eeddab2e89caa13956e76b356595ed79df",
   "result": "PASS",
-  "timestamp": "2026-07-24T03:02:53.311869Z"
+  "timestamp": "2026-07-24T04:35:35.127930Z"
 }

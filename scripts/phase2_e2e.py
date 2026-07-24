@@ -109,6 +109,30 @@ def now_text() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
+def parse_instant(value: str) -> datetime:
+    text = value.strip().replace(" ", "T")
+    if text.endswith("Z"):
+        text = text[:-1] + "+00:00"
+    if "." in text:
+        head, tail = text.split(".", 1)
+        offset = ""
+        fraction = tail
+        for marker in ("+", "-"):
+            if marker in tail:
+                fraction, offset = tail.split(marker, 1)
+                offset = marker + offset
+                break
+        text = f"{head}.{fraction[:6].ljust(6, '0')}{offset}"
+    parsed = datetime.fromisoformat(text)
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def instant_text(value: str) -> str:
+    return parse_instant(value).isoformat(timespec="microseconds").replace("+00:00", "Z")
+
+
 def load_manifest() -> dict[str, Any]:
     return json.loads(MANIFEST.read_text(encoding="utf-8"))
 
@@ -141,6 +165,13 @@ def run_text(command: list[str], *, check: bool = True) -> str:
 def psql(service: str, user: str, db: str, sql: str) -> list[list[str]]:
     result = run(compose_args() + ["exec", "-T", service, "psql", "-U", user, "-d", db, "-At", "-F", "\t", "-c", sql])
     return [line.split("\t") for line in result.stdout.splitlines() if line.strip()]
+
+
+def scalar_psql(service: str, user: str, db: str, sql: str) -> str:
+    rows = psql(service, user, db, sql)
+    if not rows or not rows[0]:
+        raise RuntimeError(f"SQL returned no rows: {sql}")
+    return rows[0][0]
 
 
 def http_json(method: str, url: str, payload: dict[str, Any] | None = None, headers: dict[str, str] | None = None) -> dict[str, Any]:
@@ -279,6 +310,7 @@ def pattern_hits(text: str, patterns: list[re.Pattern[str]]) -> list[str]:
 
 def write_report(name: str, result: str, command: str, details: dict[str, Any]) -> None:
     EVIDENCE_DIR.mkdir(parents=True, exist_ok=True)
+    known_limitations = details.get("knownLimitations", [])
     report = {
         "command": command,
         "result": result,
@@ -287,7 +319,7 @@ def write_report(name: str, result: str, command: str, details: dict[str, Any]) 
         "imageDigests": {service["name"]: service["imageDigest"] for service in load_manifest()["services"]},
         "modelArtifactDigest": load_manifest()["modelBaseline"]["modelArtifactDigest"],
         "details": details,
-        "knownLimitations": [],
+        "knownLimitations": known_limitations,
     }
     (EVIDENCE_DIR / f"{name}.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
@@ -360,8 +392,10 @@ def happy_path(command: str) -> dict[str, Any]:
     loan_url = f"http://{host}:{env('LOAN_SERVICE_PORT', '18081')}"
     governance_url = f"http://{host}:{env('GOVERNANCE_SERVICE_PORT', '18082')}"
     audit_url = f"http://{host}:{env('AUDIT_SERVICE_PORT', '18083')}"
+    agent_url = f"http://{host}:{env('AGENT_RUNTIME_PORT', '18084')}"
     token = env("INTERNAL_API_SERVICE_TOKEN", "x")
     idempotency_key = f"phase2-e2e-{uuid.uuid4()}"
+    manifest = load_manifest()
 
     submitted = http_json("POST", f"{loan_url}/api/v1/loan-applications", loan_payload(idempotency_key))
     application_id = submitted["applicationId"]
@@ -371,6 +405,32 @@ def happy_path(command: str) -> dict[str, Any]:
         f"{loan_url}/internal/api/v1/loan-applications/{application_id}/phase2-feature-snapshots/{snapshot_version}",
         headers={"X-Internal-Service-Token": token},
     )
+    snapshot_again = http_json(
+        "GET",
+        f"{loan_url}/internal/api/v1/loan-applications/{application_id}/phase2-feature-snapshots/{snapshot_version}",
+        headers={"X-Internal-Service-Token": token},
+    )
+    assert snapshot == snapshot_again, "Snapshot API must be stable on repeated lookup"
+    assert snapshot["createdAt"] == snapshot["snapshotReference"]["snapshotCreatedAt"], (
+        "Snapshot API createdAt must equal snapshotReference.snapshotCreatedAt"
+    )
+    db_snapshot_created_at = scalar_psql(
+        "loan-postgres",
+        env("LOAN_POSTGRES_USER", "rippleguard_loan"),
+        env("LOAN_POSTGRES_DB", "rippleguard_loan"),
+        "select to_char(created_at at time zone 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS.US\"Z\"') "
+        f"from loan_feature_snapshot where snapshot_id = '{snapshot['snapshotId']}'",
+    )
+    api_created_at = instant_text(snapshot["createdAt"])
+    reference_created_at = instant_text(snapshot["snapshotReference"]["snapshotCreatedAt"])
+    db_created_at = instant_text(db_snapshot_created_at)
+    assert db_created_at == api_created_at == reference_created_at, (
+        "DB created_at, API createdAt, and snapshotReference.snapshotCreatedAt must match"
+    )
+    runtime_ready = http_json("GET", f"{agent_url}/ready")
+    assert runtime_ready["modelVersion"] == manifest["modelBaseline"]["modelVersion"]
+    inspected_runtime = next(service for service in image_baseline() if service["name"] == "agent-runtime")
+    assert inspected_runtime["inspectedImageId"] == manifest["runtimeImageDigest"]
     def proposal_ready() -> dict[str, Any] | None:
         item = http_json("GET", f"{governance_url}/api/v1/decision-cases/by-application/{application_id}")
         if item["status"] == "PROPOSAL_READY":
@@ -392,11 +452,37 @@ def happy_path(command: str) -> dict[str, Any]:
             env("GOVERNANCE_POSTGRES_USER", "rippleguard_governance"),
             env("GOVERNANCE_POSTGRES_DB", "rippleguard_governance"),
             "select agent_run_id::text, request_event_id::text, snapshot_id, snapshot_digest, "
-            "feature_payload_digest, model_artifact_digest, validation_outcome "
+            "feature_payload_digest, model_artifact_digest, validation_outcome, "
+            "snapshot_schema_version, feature_schema_version, preprocessing_version, model_version, "
+            "threshold_version, to_char(snapshot_created_at at time zone 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS.US\"Z\"') "
             f"from evaluation_run where evaluation_run_id = '{evaluation_run_id}'",
         ),
     )[0]
-    agent_run_id, request_event_id = run_rows[0], run_rows[1]
+    run = {
+        "agentRunId": run_rows[0],
+        "requestEventId": run_rows[1],
+        "snapshotId": run_rows[2],
+        "snapshotDigest": run_rows[3],
+        "featurePayloadDigest": run_rows[4],
+        "modelArtifactDigest": run_rows[5],
+        "validationOutcome": run_rows[6],
+        "snapshotSchemaVersion": run_rows[7],
+        "featureSchemaVersion": run_rows[8],
+        "preprocessingVersion": run_rows[9],
+        "modelVersion": run_rows[10],
+        "thresholdVersion": run_rows[11],
+        "snapshotCreatedAt": instant_text(run_rows[12]),
+    }
+    agent_run_id, request_event_id = run["agentRunId"], run["requestEventId"]
+    assert run["snapshotId"] == snapshot["snapshotId"]
+    assert run["snapshotDigest"] == snapshot["snapshotReference"]["snapshotDigest"]
+    assert run["featurePayloadDigest"] == snapshot["featurePayloadDigest"]
+    assert run["modelArtifactDigest"] == manifest["modelBaseline"]["modelArtifactDigest"]
+    assert run["featureSchemaVersion"] == manifest["modelBaseline"]["featureSchemaVersion"]
+    assert run["preprocessingVersion"] == manifest["modelBaseline"]["preprocessingVersion"]
+    assert run["modelVersion"] == manifest["modelBaseline"]["modelVersion"]
+    assert run["thresholdVersion"] == manifest["modelBaseline"]["thresholdVersion"]
+    assert run["snapshotCreatedAt"] == db_created_at
     def timeline_with_validation() -> dict[str, Any] | None:
         item = http_json("GET", f"{audit_url}/api/v1/cases/{case_id}/timeline")
         if any(event["eventType"] == "governance.agent-result.validated.v1" for event in item["events"]):
@@ -413,6 +499,10 @@ def happy_path(command: str) -> dict[str, Any]:
         lambda: http_json("GET", f"{audit_url}/api/v1/agent-runs/{agent_run_id}"),
         timeout_seconds=120,
     )
+    agent_run_again = http_json("GET", f"{audit_url}/api/v1/agent-runs/{agent_run_id}")
+    assert agent_run_again["agentResultDigest"] == agent_run["agentResultDigest"]
+    assert agent_run_again["validationOutcome"] == agent_run["validationOutcome"]
+    assert agent_run_again["attemptCount"] == agent_run["attemptCount"]
     loan_final = http_json("GET", f"{loan_url}/api/v1/loan-applications/{application_id}")
     governance_commanded_count = int(
         psql(
@@ -442,6 +532,25 @@ def happy_path(command: str) -> dict[str, Any]:
         "validation causation must point to persisted request event"
     )
     assert validation_event["causationId"] != agent_run_id, "validation causation must not use agentRunId"
+    pending_status_rows = psql(
+        "audit-postgres",
+        env("AUDIT_POSTGRES_USER", "rippleguard_audit"),
+        env("AUDIT_POSTGRES_DB", "rippleguard_audit"),
+        "select status from pending_causation_event "
+        f"where event_id = '{validation_event['eventId']}'",
+    )
+    pending_status = pending_status_rows[0][0] if pending_status_rows else "ABSENT"
+    assert pending_status in {"ABSENT", "RESOLVED"}
+    audit_quarantine_count = int(
+        scalar_psql(
+            "audit-postgres",
+            env("AUDIT_POSTGRES_USER", "rippleguard_audit"),
+            env("AUDIT_POSTGRES_DB", "rippleguard_audit"),
+            "select count(*) from audit_event_quarantine "
+            f"where source_event_id = '{validation_event['eventId']}'",
+        )
+    )
+    assert audit_quarantine_count == 0
     assert governance_commanded_count == 0, "Governance must not publish loan.decision.commanded for Phase 2 proposal"
     assert loan_finalized_count == 0, "Loan must not publish loan.decision.finalized for Phase 2 proposal"
     assert loan_final["status"] in {"SUBMITTED", "UNDER_GOVERNANCE_REVIEW"}, (
@@ -460,11 +569,36 @@ def happy_path(command: str) -> dict[str, Any]:
         "snapshot": {
             "snapshotId": snapshot["snapshotId"],
             "snapshotVersion": snapshot["snapshotVersion"],
+            "apiCreatedAt": snapshot["createdAt"],
+            "referenceCreatedAt": snapshot["snapshotReference"]["snapshotCreatedAt"],
+            "dbCreatedAt": db_snapshot_created_at,
+            "normalizedCreatedAt": db_created_at,
+            "relookupStable": snapshot == snapshot_again,
             "snapshotDigest": snapshot["snapshotReference"]["snapshotDigest"],
             "featurePayloadDigest": snapshot["featurePayloadDigest"],
         },
-        "governance": {"status": case["status"], "validationOutcome": run_rows[6]},
-        "audit": {"timelineEvents": [event["eventType"] for event in timeline["events"]], "agentRun": agent_run},
+        "provenance": {
+            "governanceEvaluationRun": run,
+            "runtimeReady": runtime_ready,
+            "runtimeImageDigest": inspected_runtime["inspectedImageId"],
+            "manifestRuntimeImageDigest": manifest["runtimeImageDigest"],
+            "manifestModelBaseline": manifest["modelBaseline"],
+        },
+        "governance": {"status": case["status"], "validationOutcome": run["validationOutcome"]},
+        "audit": {
+            "timelineEvents": [event["eventType"] for event in timeline["events"]],
+            "agentRun": agent_run,
+            "agentRunRelookupStable": {
+                "agentResultDigest": agent_run_again["agentResultDigest"] == agent_run["agentResultDigest"],
+                "validationOutcome": agent_run_again["validationOutcome"] == agent_run["validationOutcome"],
+                "attemptCount": agent_run_again["attemptCount"] == agent_run["attemptCount"],
+            },
+            "pendingCausationStatusForValidationEvent": pending_status,
+            "quarantineRowsForValidationEvent": audit_quarantine_count,
+            "knownProjectionLimitations": [
+                "Audit Agent Run read model currently exposes nullable Phase 2 provenance fields when validation event payload omits them."
+            ],
+        },
         "causation": {
             "requestEventId": request_event["eventId"],
             "validationCausationId": validation_event["causationId"],
@@ -475,6 +609,9 @@ def happy_path(command: str) -> dict[str, Any]:
             "governanceCommandedEventsForApplication": governance_commanded_count,
             "loanFinalizedEventsForApplication": loan_finalized_count,
         },
+        "knownLimitations": [
+            "Audit Agent Run read model currently exposes nullable Phase 2 provenance fields when validation event payload omits them."
+        ],
     }
 
 

@@ -6,7 +6,7 @@
     "sourceCommit": "751f43c88c1bef860c76398eed24b3d60225b931"
   },
   "details": {
-    "agentRuntimeContainerId": "f6a4795998ced0ae0ee8f8161dea9df8c0b0040e3a719e9de78642f32e0c1a37",
+    "agentRuntimeContainerId": "5b1e38b86a7d51bad3fe39ae19cd9bb816ba9d19a4b8282a44f61721621d7117",
     "baseline": {
       "contractBaseline": {
         "repository": "dlsrnjs125/rippleguard-contracts",
@@ -96,5 +96,5 @@
   "knownLimitations": [],
   "modelArtifactDigest": "sha256:1780b376723b52ad04630a474c6bd2eeddab2e89caa13956e76b356595ed79df",
   "result": "PASS",
-  "timestamp": "2026-07-24T03:02:48.149250Z"
+  "timestamp": "2026-07-24T04:35:31.649570Z"
 }

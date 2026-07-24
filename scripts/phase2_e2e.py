@@ -20,6 +20,77 @@ from urllib import error, request
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "manifests" / "phase2-loan-decision.json"
 EVIDENCE_DIR = ROOT / "evidence" / "phase2"
+LLM_IMPORT_MODULES = (
+    "openai",
+    "anthropic",
+    "ollama",
+    "litellm",
+    "google_generativeai",
+    "google_genai",
+    "vertexai",
+    "cohere",
+    "mistralai",
+    "groq",
+    "boto3",
+    "azure_ai_inference",
+)
+LLM_DEPENDENCY_NAMES = (
+    "openai",
+    "anthropic",
+    "ollama",
+    "litellm",
+    "google-generativeai",
+    "google-genai",
+    "vertexai",
+    "cohere",
+    "mistralai",
+    "groq",
+    "boto3",
+    "azure-ai-inference",
+)
+LLM_CONFIG_KEYS = (
+    "OPENAI_API_KEY",
+    "OPENAI_API_BASE",
+    "OPENAI_BASE_URL",
+    "OPENAI_MODEL",
+    "AZURE_OPENAI_API_KEY",
+    "AZURE_OPENAI_ENDPOINT",
+    "AZURE_OPENAI_API_BASE",
+    "AZURE_OPENAI_BASE_URL",
+    "AZURE_OPENAI_MODEL",
+    "AZURE_OPENAI_DEPLOYMENT",
+    "ANTHROPIC_API_KEY",
+    "ANTHROPIC_BASE_URL",
+    "ANTHROPIC_MODEL",
+    "OLLAMA_HOST",
+    "OLLAMA_BASE_URL",
+    "OLLAMA_MODEL",
+    "LITELLM_API_KEY",
+    "GOOGLE_API_KEY",
+    "GOOGLE_GENAI_API_KEY",
+    "VERTEXAI_PROJECT",
+    "COHERE_API_KEY",
+    "MISTRAL_API_KEY",
+    "GROQ_API_KEY",
+    "AWS_BEDROCK_RUNTIME_ENDPOINT",
+    "BEDROCK_MODEL_ID",
+    "AZURE_AI_INFERENCE_ENDPOINT",
+    "LOCAL_LLM",
+    "LLM_ENDPOINT",
+    "LLM_BASE_URL",
+    "LLM_PROVIDER",
+)
+LLM_URL_TOKENS = (
+    "ollama",
+    "openai",
+    "anthropic",
+    "generativelanguage.googleapis.com",
+    "aiplatform.googleapis.com",
+    "cohere",
+    "mistral",
+    "groq",
+    "bedrock-runtime",
+)
 
 
 def load_dotenv() -> None:
@@ -156,40 +227,44 @@ def manifest_baseline_context() -> dict[str, Any]:
 
 
 def forbidden_config_hits(text: str) -> list[str]:
+    key_pattern = "|".join(re.escape(key) for key in LLM_CONFIG_KEYS)
+    url_pattern = "|".join(re.escape(token) for token in LLM_URL_TOKENS)
     patterns = [
-        re.compile(r"\bOPENAI_(?:API_KEY|API_BASE|BASE_URL|ORGANIZATION|PROJECT|MODEL)\b"),
-        re.compile(r"\bAZURE_OPENAI_(?:API_KEY|ENDPOINT|API_BASE|BASE_URL|MODEL|DEPLOYMENT)\b"),
-        re.compile(r"\bANTHROPIC_(?:API_KEY|BASE_URL|MODEL)\b"),
-        re.compile(r"\bOLLAMA_(?:HOST|BASE_URL|MODEL)\b"),
-        re.compile(r"\b(?:LOCAL_LLM|LLM_ENDPOINT|LLM_BASE_URL|LLM_PROVIDER)\b"),
-        re.compile(r"https?://[^\"'\s]*(?:ollama|openai|anthropic)", re.IGNORECASE),
+        re.compile(rf"\b(?:{key_pattern})\b"),
+        re.compile(rf"https?://[^\"'\s]*(?:{url_pattern})", re.IGNORECASE),
         re.compile(r"/v1/chat/completions", re.IGNORECASE),
     ]
     return pattern_hits(text, patterns)
 
 
 def forbidden_runtime_hits(text: str) -> list[str]:
+    provider_pattern = "|".join(re.escape(provider) for provider in LLM_DEPENDENCY_NAMES)
+    url_pattern = "|".join(re.escape(token) for token in LLM_URL_TOKENS)
     patterns = [
-        re.compile(r"(?:openai|anthropic|ollama)\s+(?:client|request|connection|provider)\s+(?:initialized|started|created)", re.IGNORECASE),
-        re.compile(r"(?:calling|requesting|connected to)\s+(?:openai|anthropic|ollama)", re.IGNORECASE),
-        re.compile(r"https?://[^\"'\s]*(?:ollama|openai|anthropic)", re.IGNORECASE),
+        re.compile(rf"(?:{provider_pattern})\s+(?:client|request|connection|provider)\s+(?:initialized|started|created)", re.IGNORECASE),
+        re.compile(rf"(?:calling|requesting|connected to)\s+(?:{provider_pattern})", re.IGNORECASE),
+        re.compile(rf"https?://[^\"'\s]*(?:{url_pattern})", re.IGNORECASE),
         re.compile(r"/v1/chat/completions", re.IGNORECASE),
     ]
     return pattern_hits(text, patterns)
 
 
 def repository_llm_patterns() -> list[re.Pattern[str]]:
+    import_pattern = "|".join(re.escape(module) for module in LLM_IMPORT_MODULES)
+    dependency_pattern = "|".join(
+        re.escape(name).replace(r"\-", r"[_-]") + r"(?:[_-][a-z0-9]+)*"
+        if name == "langchain"
+        else re.escape(name).replace(r"\-", r"[_-]")
+        for name in (*LLM_DEPENDENCY_NAMES, "langchain")
+    )
+    key_pattern = "|".join(re.escape(key) for key in LLM_CONFIG_KEYS)
+    url_pattern = "|".join(re.escape(token) for token in LLM_URL_TOKENS)
     return [
-        re.compile(r"^\s*(from|import)\s+(openai|anthropic|ollama|langchain(?:_[a-z0-9]+)*)\b"),
-        re.compile(r"^\s*(openai|anthropic|ollama|langchain(?:[_-][a-z0-9]+)*)(\[.*\])?\s*[=<>]", re.IGNORECASE),
-        re.compile(r"^\s*[\"'](?:openai|anthropic|ollama|langchain(?:[_-][a-z0-9]+)*)(?:\[.*\])?\s*(?:[<>=!~].*)?[\"']\s*,?\s*$", re.IGNORECASE),
-        re.compile(
-            r"\b(OPENAI_API_KEY|OPENAI_API_BASE|OPENAI_BASE_URL|OPENAI_MODEL|"
-            r"AZURE_OPENAI_API_KEY|AZURE_OPENAI_ENDPOINT|AZURE_OPENAI_API_BASE|AZURE_OPENAI_MODEL|"
-            r"ANTHROPIC_API_KEY|ANTHROPIC_BASE_URL|ANTHROPIC_MODEL|"
-            r"OLLAMA_HOST|LLM_ENDPOINT|LLM_BASE_URL|LLM_PROVIDER)\b"
-        ),
-        re.compile(r"https?://[^\"']*(ollama|openai|anthropic)", re.IGNORECASE),
+        re.compile(rf"^\s*(from|import)\s+(?:{import_pattern}|langchain(?:_[a-z0-9]+)*)\b"),
+        re.compile(rf"^\s*(?:{dependency_pattern})(\[.*\])?\s*(?:[=<>!~]|@\s*)", re.IGNORECASE),
+        re.compile(rf"^\s*[\"'](?:{dependency_pattern})(?:\[.*\])?\s*(?:(?:[<>=!~].*)|(?:@\s*[^\s\"']+))?[\"']\s*,?\s*$", re.IGNORECASE),
+        re.compile(rf"\b(?:{key_pattern})\b"),
+        re.compile(rf"https?://[^\"']*(?:{url_pattern})", re.IGNORECASE),
         re.compile(r"/v1/chat/completions", re.IGNORECASE),
     ]
 

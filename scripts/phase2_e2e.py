@@ -105,7 +105,7 @@ def sha256_file(path: Path) -> str:
 def image_baseline() -> list[dict[str, Any]]:
     baseline = []
     for service in load_manifest()["services"]:
-        inspected = json.loads(run(["docker", "image", "inspect", service["image"]]).stdout)[0]
+        inspected = json.loads(run(["docker", "inspect", service["image"]]).stdout)[0]
         labels = inspected.get("Config", {}).get("Labels") or {}
         baseline.append(
             {
@@ -157,8 +157,9 @@ def manifest_baseline_context() -> dict[str, Any]:
 
 def forbidden_config_hits(text: str) -> list[str]:
     patterns = [
-        re.compile(r"\bOPENAI_(?:API_KEY|BASE_URL|ORGANIZATION|PROJECT)\b"),
-        re.compile(r"\bANTHROPIC_(?:API_KEY|BASE_URL)\b"),
+        re.compile(r"\bOPENAI_(?:API_KEY|API_BASE|BASE_URL|ORGANIZATION|PROJECT|MODEL)\b"),
+        re.compile(r"\bAZURE_OPENAI_(?:API_KEY|ENDPOINT|API_BASE|BASE_URL|MODEL|DEPLOYMENT)\b"),
+        re.compile(r"\bANTHROPIC_(?:API_KEY|BASE_URL|MODEL)\b"),
         re.compile(r"\bOLLAMA_(?:HOST|BASE_URL|MODEL)\b"),
         re.compile(r"\b(?:LOCAL_LLM|LLM_ENDPOINT|LLM_BASE_URL|LLM_PROVIDER)\b"),
         re.compile(r"https?://[^\"'\s]*(?:ollama|openai|anthropic)", re.IGNORECASE),
@@ -179,9 +180,15 @@ def forbidden_runtime_hits(text: str) -> list[str]:
 
 def repository_llm_patterns() -> list[re.Pattern[str]]:
     return [
-        re.compile(r"^\s*(from|import)\s+(openai|anthropic|langchain|ollama)\b"),
-        re.compile(r"^\s*(openai|anthropic|langchain|ollama)(\[.*\])?\s*[=<>]"),
-        re.compile(r"\b(OPENAI_API_KEY|ANTHROPIC_API_KEY|OLLAMA_HOST|LLM_ENDPOINT|LLM_BASE_URL|LLM_PROVIDER)\b"),
+        re.compile(r"^\s*(from|import)\s+(openai|anthropic|ollama|langchain(?:_[a-z0-9]+)*)\b"),
+        re.compile(r"^\s*(openai|anthropic|ollama|langchain(?:[_-][a-z0-9]+)*)(\[.*\])?\s*[=<>]", re.IGNORECASE),
+        re.compile(r"^\s*[\"'](?:openai|anthropic|ollama|langchain(?:[_-][a-z0-9]+)*)(?:\[.*\])?\s*(?:[<>=!~].*)?[\"']\s*,?\s*$", re.IGNORECASE),
+        re.compile(
+            r"\b(OPENAI_API_KEY|OPENAI_API_BASE|OPENAI_BASE_URL|OPENAI_MODEL|"
+            r"AZURE_OPENAI_API_KEY|AZURE_OPENAI_ENDPOINT|AZURE_OPENAI_API_BASE|AZURE_OPENAI_MODEL|"
+            r"ANTHROPIC_API_KEY|ANTHROPIC_BASE_URL|ANTHROPIC_MODEL|"
+            r"OLLAMA_HOST|LLM_ENDPOINT|LLM_BASE_URL|LLM_PROVIDER)\b"
+        ),
         re.compile(r"https?://[^\"']*(ollama|openai|anthropic)", re.IGNORECASE),
         re.compile(r"/v1/chat/completions", re.IGNORECASE),
     ]

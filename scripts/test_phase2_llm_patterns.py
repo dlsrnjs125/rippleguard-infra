@@ -31,10 +31,25 @@ class Phase2LlmPatternTest(unittest.TestCase):
         hits = phase2_e2e.pattern_hits(text, phase2_e2e.repository_llm_patterns())
         self.assertEqual(hits, ['openai = "^1.0.0"'])
 
+    def test_pep621_dependency_array_fails(self) -> None:
+        text = '  "openai>=1.0,<2",\n'
+        hits = phase2_e2e.pattern_hits(text, phase2_e2e.repository_llm_patterns())
+        self.assertEqual(hits, ['  "openai>=1.0,<2",'])
+
+    def test_langchain_provider_imports_fail(self) -> None:
+        text = "import langchain_core\nfrom langchain_openai import ChatOpenAI\n"
+        hits = phase2_e2e.pattern_hits(text, phase2_e2e.repository_llm_patterns())
+        self.assertEqual(hits, ["import langchain_core", "from langchain_openai import ChatOpenAI"])
+
     def test_compose_openai_env_fails(self) -> None:
         text = "OPENAI_API_KEY=${OPENAI_API_KEY}\n"
         hits = phase2_e2e.forbidden_config_hits(text)
         self.assertEqual(hits, ["OPENAI_API_KEY=${OPENAI_API_KEY}"])
+
+    def test_azure_openai_env_fails(self) -> None:
+        text = "AZURE_OPENAI_ENDPOINT=https://example.openai.azure.com\n"
+        hits = phase2_e2e.forbidden_config_hits(text)
+        self.assertEqual(hits, ["AZURE_OPENAI_ENDPOINT=https://example.openai.azure.com"])
 
     def test_disabled_log_statement_passes(self) -> None:
         text = "local LLM disabled; integration not configured\n"

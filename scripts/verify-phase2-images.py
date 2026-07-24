@@ -14,7 +14,7 @@ MANIFEST = ROOT / "manifests" / "phase2-loan-decision.json"
 
 def inspect_image(image: str) -> dict:
     result = subprocess.run(
-        ["docker", "image", "inspect", image],
+        ["docker", "inspect", image],
         check=False,
         capture_output=True,
         text=True,

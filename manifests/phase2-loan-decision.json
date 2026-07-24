@@ -2,7 +2,7 @@
   "name": "phase2-loan-decision",
   "contractBaseline": {
     "repository": "dlsrnjs125/rippleguard-contracts",
-    "sourceCommit": "f4012e8b5a0dcd5605b61652a5c39deacb14454b",
+    "sourceCommit": "751f43c88c1bef860c76398eed24b3d60225b931",
     "schemaSet": "phase2-loan-decision"
   },
   "modelBaseline": {
@@ -25,16 +25,16 @@
       "name": "loan-service",
       "repository": "dlsrnjs125/rippleguard-loan-service",
       "sourceUrl": "https://github.com/dlsrnjs125/rippleguard-loan-service",
-      "sourceCommit": "e403c0a60ccb1cebf03380832d047f3fc01019e0",
-      "image": "rippleguard-loan-service:e403c0a60ccb",
-      "immutableTag": "e403c0a60ccb",
-      "imageDigest": null,
-      "imageDigestStatus": "blocked-unpublished-local-image",
+      "sourceCommit": "1f78f8c3358fc0437b15f7b32ae8b2d4028a4800",
+      "image": "rippleguard-loan-service:1f78f8c3358f",
+      "immutableTag": "1f78f8c3358f",
+      "imageDigest": "sha256:8d0ec64d538c5aec14f8d4f0145d99cf6a8aaf002c7a435881a34b40490841f1",
+      "imageDigestKind": "localImageId",
       "ociLabels": {
-        "org.opencontainers.image.revision": "e403c0a60ccb1cebf03380832d047f3fc01019e0",
+        "org.opencontainers.image.revision": "1f78f8c3358fc0437b15f7b32ae8b2d4028a4800",
         "org.opencontainers.image.source": "https://github.com/dlsrnjs125/rippleguard-loan-service"
       },
-      "contractCommit": "f4012e8b5a0dcd5605b61652a5c39deacb14454b",
+      "contractCommit": "751f43c88c1bef860c76398eed24b3d60225b931",
       "produces": [
         "loan.application.submitted.v1",
         "loan.evidence.updated.v1",
@@ -49,16 +49,16 @@
       "name": "governance-service",
       "repository": "dlsrnjs125/rippleguard-governance-service",
       "sourceUrl": "https://github.com/dlsrnjs125/rippleguard-governance-service",
-      "sourceCommit": "6e5dee34a01429ac017774fcd7a238e2f1415481",
-      "image": "rippleguard-governance-service:6e5dee34a014",
-      "immutableTag": "6e5dee34a014",
-      "imageDigest": null,
-      "imageDigestStatus": "blocked-unpublished-local-image",
+      "sourceCommit": "053206df5d114b723bc6135642cbfcddeb54b2ba",
+      "image": "rippleguard-governance-service:053206df5d11",
+      "immutableTag": "053206df5d11",
+      "imageDigest": "sha256:83b3d870088b50dd6fc04b3a3735a562e9110232a22bdcd356012c1751deda65",
+      "imageDigestKind": "localImageId",
       "ociLabels": {
-        "org.opencontainers.image.revision": "6e5dee34a01429ac017774fcd7a238e2f1415481",
+        "org.opencontainers.image.revision": "053206df5d114b723bc6135642cbfcddeb54b2ba",
         "org.opencontainers.image.source": "https://github.com/dlsrnjs125/rippleguard-governance-service"
       },
-      "contractCommit": "f4012e8b5a0dcd5605b61652a5c39deacb14454b",
+      "contractCommit": "751f43c88c1bef860c76398eed24b3d60225b931",
       "produces": [
         "governance.review.started.v1",
         "governance.agent-result.validated.v1"
@@ -71,16 +71,16 @@
       "name": "agent-runtime",
       "repository": "dlsrnjs125/rippleguard-agent-runtime",
       "sourceUrl": "https://github.com/dlsrnjs125/rippleguard-agent-runtime",
-      "sourceCommit": "35121627550e5999a084c123b610f47884aa01f7",
-      "image": "rippleguard-agent-runtime:35121627550e",
-      "immutableTag": "35121627550e",
-      "imageDigest": null,
-      "imageDigestStatus": "blocked-unpublished-local-image",
+      "sourceCommit": "25e8c187ee807f3a89055a5db2dbc18cb595a63e",
+      "image": "rippleguard-agent-runtime:25e8c187ee80",
+      "immutableTag": "25e8c187ee80",
+      "imageDigest": "sha256:b6a035bfae920e89f1753e17e958861a2054902a0a4d7c1efde7844f64390a34",
+      "imageDigestKind": "localImageId",
       "ociLabels": {
-        "org.opencontainers.image.revision": "35121627550e5999a084c123b610f47884aa01f7",
+        "org.opencontainers.image.revision": "25e8c187ee807f3a89055a5db2dbc18cb595a63e",
         "org.opencontainers.image.source": "https://github.com/dlsrnjs125/rippleguard-agent-runtime"
       },
-      "contractCommit": "f4012e8b5a0dcd5605b61652a5c39deacb14454b",
+      "contractCommit": "751f43c88c1bef860c76398eed24b3d60225b931",
       "produces": [],
       "consumes": []
     },
@@ -88,16 +88,16 @@
       "name": "audit-replay-service",
       "repository": "dlsrnjs125/rippleguard-audit-replay-service",
       "sourceUrl": "https://github.com/dlsrnjs125/rippleguard-audit-replay-service",
-      "sourceCommit": "f3162d3bf3ea2bcfd8d40c929607a84d88054082",
-      "image": "rippleguard-audit-replay-service:f3162d3bf3ea",
-      "immutableTag": "f3162d3bf3ea",
-      "imageDigest": null,
-      "imageDigestStatus": "blocked-unpublished-local-image",
+      "sourceCommit": "e6baae0a1fefcbb32ccc2dbd02cae2da8b360581",
+      "image": "rippleguard-audit-replay-service:e6baae0a1fef",
+      "immutableTag": "e6baae0a1fef",
+      "imageDigest": "sha256:e140b080f91e3549c73e3f7fbd1898cbf75b2d07134f83b56fd44a747fefa331",
+      "imageDigestKind": "localImageId",
       "ociLabels": {
-        "org.opencontainers.image.revision": "f3162d3bf3ea2bcfd8d40c929607a84d88054082",
+        "org.opencontainers.image.revision": "e6baae0a1fefcbb32ccc2dbd02cae2da8b360581",
         "org.opencontainers.image.source": "https://github.com/dlsrnjs125/rippleguard-audit-replay-service"
       },
-      "contractCommit": "f4012e8b5a0dcd5605b61652a5c39deacb14454b",
+      "contractCommit": "751f43c88c1bef860c76398eed24b3d60225b931",
       "produces": [],
       "consumes": [
         "loan.application.submitted.v1",
@@ -124,24 +124,48 @@
     "loan.decision.commanded.v1",
     "loan.decision.finalized.v1"
   ],
+  "runtimeImageDigest": "sha256:b6a035bfae920e89f1753e17e958861a2054902a0a4d7c1efde7844f64390a34",
+  "runtimeImageDigestKind": "localImageId",
+  "publicationStatus": "BLOCKED",
   "knownBlockers": [
     {
-      "repository": "rippleguard-governance-service",
-      "reason": "Current Phase 1 loan submitted event does not provide materialized Phase 2 feature payload; Governance emits IMMUTABLE_REFERENCE while Agent Runtime requires feature payload materialization or snapshot repository support."
+      "reason": "SNAPSHOT_CREATED_AT_PRECISION_MISMATCH",
+      "classification": "SNAPSHOT_DIGEST_MISMATCH",
+      "status": "BLOCKED",
+      "description": "Loan persists created_at at PostgreSQL microsecond precision while snapshotReference.snapshotCreatedAt preserves nanosecond precision. Governance compares the API identity and reference identity strictly, so the happy path blocks before PROPOSAL_READY.",
+      "requiredFix": "Align Loan Service snapshot reference creation with the persisted createdAt identity, or normalize the persisted identity before Governance verification without weakening digest validation."
     },
     {
-      "repository": "rippleguard-agent-runtime",
-      "reason": "Dockerfile does not publish OCI revision/source labels, so Phase 2 image provenance verification fails until the service image adds labels."
-    },
-    {
-      "repository": "rippleguard-infra",
-      "reason": "Service image registry digests are not pinned yet because Phase 2 images have not been published to an immutable registry; image verification must fail rather than skip this identity check."
-    },
-    {
-      "repository": "rippleguard-contracts",
-      "reason": "Phase 2 contract scope documents causationId as nearest persisted event, while current Governance/Audit runtime compatibility treats validation causationId as agentRunId."
+      "reason": "FAILURE_DRILLS_REQUIRE_REAL_INJECTION",
+      "status": "BLOCKED",
+      "description": "Retry, timeout, duplicate, conflict, artifact, contract, snapshot, and recovery drills must use real service/API/container/artifact injection before this manifest can be promoted to a published Phase 2 baseline."
     }
   ],
+  "verification": {
+    "status": "FAILED",
+    "attemptedAt": "2026-07-23T11:57:40+09:00",
+    "attemptedCommands": [
+      {
+        "command": "make validate-static",
+        "result": "PASS"
+      },
+      {
+        "command": "make phase2-preflight",
+        "result": "PASS"
+      },
+      {
+        "command": "make phase2-verify-images",
+        "result": "PASS"
+      },
+      {
+        "command": "make phase2-verify",
+        "result": "FAIL",
+        "failure": "SNAPSHOT_DIGEST_MISMATCH before PROPOSAL_READY"
+      }
+    ],
+    "evidenceDirectory": "evidence/phase2",
+    "kafkaOrderingEvidence": "Kafka ordering is per topic-partition only. Phase 2 request and validation events use separate topics, so Audit bounded pending causation reconciliation is required and verified."
+  },
   "excludedRuntimeDependencies": {
     "localLlm": true,
     "remoteLlm": true,

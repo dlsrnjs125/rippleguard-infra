@@ -14,7 +14,7 @@ MANIFEST = ROOT / "manifests" / "phase2-loan-decision.json"
 
 def inspect_image(image: str) -> dict:
     result = subprocess.run(
-        ["docker", "image", "inspect", image],
+        ["docker", "inspect", image],
         check=False,
         capture_output=True,
         text=True,
@@ -45,12 +45,17 @@ def main() -> int:
                 failures.append(f"{image}: label {key} expected {expected}, got {actual!r}")
 
         if not expected_digest:
-            failures.append(f"{image}: imageDigest is not pinned; provenance verification is incomplete")
+            failures.append(f"{image}: imageDigest is required")
             continue
 
         repo_digests = inspected.get("RepoDigests") or []
-        if not any(digest.endswith("@" + expected_digest) or digest == expected_digest for digest in repo_digests):
-            failures.append(f"{image}: digest {expected_digest} not present in RepoDigests {repo_digests}")
+        image_id = inspected.get("Id")
+        if image_id != expected_digest and not any(
+            digest.endswith("@" + expected_digest) or digest == expected_digest for digest in repo_digests
+        ):
+            failures.append(
+                f"{image}: digest {expected_digest} does not match image Id {image_id} or RepoDigests {repo_digests}"
+            )
 
     if failures:
         print("\n".join(failures))

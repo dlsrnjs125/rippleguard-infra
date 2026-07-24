@@ -67,6 +67,27 @@ def main() -> int:
     if manifest.get("topics") != expected_topics:
         failures.append("manifest topics must exactly match kafka/topics/phase2-events.txt")
 
+    publication_status = manifest.get("publicationStatus")
+    verification = manifest.get("verification", {})
+    if publication_status == "BLOCKED":
+        if verification.get("status") != "FAILED":
+            failures.append("blocked Phase 2 manifest must record verification.status=FAILED")
+        if verification.get("verifiedAt"):
+            failures.append("blocked Phase 2 manifest must not carry verification.verifiedAt")
+        if not manifest.get("knownBlockers"):
+            failures.append("blocked Phase 2 manifest must list knownBlockers")
+        if manifest.get("runtimeImageDigestKind") != "localImageId":
+            failures.append("blocked local Phase 2 manifest must mark runtimeImageDigestKind=localImageId")
+    elif publication_status == "PUBLISHED":
+        if verification.get("status") != "PASS" or not verification.get("verifiedAt"):
+            failures.append("published Phase 2 manifest must carry passing verification and verifiedAt")
+        if manifest.get("knownBlockers"):
+            failures.append("published Phase 2 manifest must not list knownBlockers")
+        if manifest.get("runtimeImageDigestKind") != "registryDigest":
+            failures.append("published Phase 2 manifest must use runtimeImageDigestKind=registryDigest")
+    else:
+        failures.append("publicationStatus must be BLOCKED or PUBLISHED")
+
     event_types = baseline.get("eventTypes", [])
     missing_topic_events = [event_type for event_type in event_types if event_type not in expected_topics]
     if missing_topic_events:
@@ -87,11 +108,16 @@ def main() -> int:
         if image.endswith(":latest") or ":local" in image:
             failures.append(f"{name}: image tag must not use latest or local aliases")
         image_digest = service.get("imageDigest")
+        image_digest_kind = service.get("imageDigestKind")
         if image_digest is None:
             if service.get("imageDigestStatus") != "blocked-unpublished-local-image":
                 failures.append(f"{name}: imageDigest is required or must carry blocked-unpublished-local-image status")
         elif not SHA256.fullmatch(image_digest):
             failures.append(f"{name}: imageDigest must be a sha256 digest")
+        if publication_status == "BLOCKED" and image_digest_kind != "localImageId":
+            failures.append(f"{name}: blocked local manifest must mark imageDigestKind=localImageId")
+        if publication_status == "PUBLISHED" and image_digest_kind != "registryDigest":
+            failures.append(f"{name}: published manifest must mark imageDigestKind=registryDigest")
         labels = service.get("ociLabels", {})
         if labels.get("org.opencontainers.image.revision") != commit:
             failures.append(f"{name}: OCI revision label must match sourceCommit")

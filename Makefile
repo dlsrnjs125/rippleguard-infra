@@ -2,7 +2,7 @@ COMPOSE_FILE := compose/docker-compose.platform.yml
 PHASE1_COMPOSE_FILE := compose/docker-compose.phase1.yml
 PHASE2_COMPOSE_FILE := compose/docker-compose.phase2.yml
 
-.PHONY: platform-up platform-check platform-down platform-clean validate-static validate-contract-baseline phase1-build-images phase1-verify-images phase1-tag-local-images phase1-up phase1-check phase1-e2e phase1-duplicate-check phase1-recovery-check phase1-outbox-recovery-check phase1-order-check phase1-down phase1-clean phase2-build-images phase2-verify-images phase2-scaffold-check phase2-preflight phase2-up phase2-check phase2-e2e phase2-local-llm-absent-check phase2-down phase2-clean phase2-verify
+.PHONY: platform-up platform-check platform-down platform-clean validate-static validate-contract-baseline phase1-build-images phase1-verify-images phase1-tag-local-images phase1-up phase1-check phase1-e2e phase1-duplicate-check phase1-recovery-check phase1-outbox-recovery-check phase1-order-check phase1-down phase1-clean phase2-build-images phase2-verify-images phase2-scaffold-check phase2-preflight phase2-up phase2-check phase2-e2e phase2-retry-check phase2-timeout-check phase2-duplicate-request-check phase2-duplicate-result-check phase2-conflict-check phase2-artifact-digest-failure-check phase2-missing-artifact-check phase2-contract-mismatch-check phase2-snapshot-mismatch-check phase2-recovery-check phase2-reproducibility-check phase2-local-llm-absent-check phase2-down phase2-clean phase2-verify
 
 platform-up:
 	./scripts/platform-up.sh
@@ -78,6 +78,39 @@ phase2-check:
 
 phase2-e2e:
 	./scripts/phase2-e2e.sh
+
+phase2-retry-check:
+	./scripts/phase2-retry-check.sh
+
+phase2-timeout-check:
+	./scripts/phase2-timeout-check.sh
+
+phase2-duplicate-request-check:
+	./scripts/phase2-duplicate-request-check.sh
+
+phase2-duplicate-result-check:
+	./scripts/phase2-duplicate-result-check.sh
+
+phase2-conflict-check:
+	./scripts/phase2-conflict-check.sh
+
+phase2-artifact-digest-failure-check:
+	./scripts/phase2-artifact-digest-failure-check.sh
+
+phase2-missing-artifact-check:
+	./scripts/phase2-missing-artifact-check.sh
+
+phase2-contract-mismatch-check:
+	./scripts/phase2-contract-mismatch-check.sh
+
+phase2-snapshot-mismatch-check:
+	./scripts/phase2-snapshot-mismatch-check.sh
+
+phase2-recovery-check:
+	./scripts/phase2-recovery-check.sh
+
+phase2-reproducibility-check:
+	./scripts/phase2-reproducibility-check.sh
 
 phase2-local-llm-absent-check:
 	./scripts/phase2-local-llm-absent-check.sh

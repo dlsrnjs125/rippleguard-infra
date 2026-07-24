@@ -1,0 +1,100 @@
+{
+  "command": "make phase2-local-llm-absent-check",
+  "commitBaseline": {
+    "repository": "dlsrnjs125/rippleguard-contracts",
+    "schemaSet": "phase2-loan-decision",
+    "sourceCommit": "751f43c88c1bef860c76398eed24b3d60225b931"
+  },
+  "details": {
+    "agentRuntimeContainerId": "e4e0412f80373ce8b1ceeb65118d9b44e14cbf8d2e8a9c40c42718a89ab85c0c",
+    "baseline": {
+      "contractBaseline": {
+        "repository": "dlsrnjs125/rippleguard-contracts",
+        "schemaSet": "phase2-loan-decision",
+        "sourceCommit": "751f43c88c1bef860c76398eed24b3d60225b931"
+      },
+      "modelBaseline": {
+        "featureSchemaVersion": "phase-2-loan-features.v1.0.0",
+        "modelArtifactDigest": "sha256:1780b376723b52ad04630a474c6bd2eeddab2e89caa13956e76b356595ed79df",
+        "modelArtifactPath": "../rippleguard-agent-runtime/artifacts/models/phase2-loan-xgboost.v1.0.0.json",
+        "modelManifestDigest": "sha256:feae355ac937e43be18069d6390936d1c4b8630deea92333d6e6de15c514b9e7",
+        "modelManifestPath": "../rippleguard-agent-runtime/artifacts/manifests/phase2-loan-xgboost.v1.0.0.json",
+        "modelName": "phase2-loan-xgboost",
+        "modelVersion": "loan-model.v1.0.0",
+        "preprocessingVersion": "preprocess.v1.0.0",
+        "productionRegistry": false,
+        "storageMode": "read-only bind mount",
+        "thresholdManifestDigest": "sha256:c3a7e45bd4c65e57d3fb935e08213b16d144a4674365c16c0eedfce7c6b4e4ea",
+        "thresholdManifestPath": "../rippleguard-agent-runtime/artifacts/manifests/thresholds.v1.0.0.json",
+        "thresholdVersion": "threshold.v1.0.0"
+      },
+      "runtimeImageDigest": "sha256:b6a035bfae920e89f1753e17e958861a2054902a0a4d7c1efde7844f64390a34",
+      "services": [
+        {
+          "image": "rippleguard-loan-service:1f78f8c3358f",
+          "imageDigest": "sha256:8d0ec64d538c5aec14f8d4f0145d99cf6a8aaf002c7a435881a34b40490841f1",
+          "imageDigestKind": "localImageId",
+          "name": "loan-service",
+          "ociLabels": {
+            "org.opencontainers.image.revision": "1f78f8c3358fc0437b15f7b32ae8b2d4028a4800",
+            "org.opencontainers.image.source": "https://github.com/dlsrnjs125/rippleguard-loan-service"
+          },
+          "repository": "dlsrnjs125/rippleguard-loan-service",
+          "sourceCommit": "1f78f8c3358fc0437b15f7b32ae8b2d4028a4800"
+        },
+        {
+          "image": "rippleguard-governance-service:053206df5d11",
+          "imageDigest": "sha256:83b3d870088b50dd6fc04b3a3735a562e9110232a22bdcd356012c1751deda65",
+          "imageDigestKind": "localImageId",
+          "name": "governance-service",
+          "ociLabels": {
+            "org.opencontainers.image.revision": "053206df5d114b723bc6135642cbfcddeb54b2ba",
+            "org.opencontainers.image.source": "https://github.com/dlsrnjs125/rippleguard-governance-service"
+          },
+          "repository": "dlsrnjs125/rippleguard-governance-service",
+          "sourceCommit": "053206df5d114b723bc6135642cbfcddeb54b2ba"
+        },
+        {
+          "image": "rippleguard-agent-runtime:25e8c187ee80",
+          "imageDigest": "sha256:b6a035bfae920e89f1753e17e958861a2054902a0a4d7c1efde7844f64390a34",
+          "imageDigestKind": "localImageId",
+          "name": "agent-runtime",
+          "ociLabels": {
+            "org.opencontainers.image.revision": "25e8c187ee807f3a89055a5db2dbc18cb595a63e",
+            "org.opencontainers.image.source": "https://github.com/dlsrnjs125/rippleguard-agent-runtime"
+          },
+          "repository": "dlsrnjs125/rippleguard-agent-runtime",
+          "sourceCommit": "25e8c187ee807f3a89055a5db2dbc18cb595a63e"
+        },
+        {
+          "image": "rippleguard-audit-replay-service:e6baae0a1fef",
+          "imageDigest": "sha256:e140b080f91e3549c73e3f7fbd1898cbf75b2d07134f83b56fd44a747fefa331",
+          "imageDigestKind": "localImageId",
+          "name": "audit-replay-service",
+          "ociLabels": {
+            "org.opencontainers.image.revision": "e6baae0a1fefcbb32ccc2dbd02cae2da8b360581",
+            "org.opencontainers.image.source": "https://github.com/dlsrnjs125/rippleguard-audit-replay-service"
+          },
+          "repository": "dlsrnjs125/rippleguard-audit-replay-service",
+          "sourceCommit": "e6baae0a1fefcbb32ccc2dbd02cae2da8b360581"
+        }
+      ]
+    },
+    "composeConfigForbiddenHits": 0,
+    "containerEnvForbiddenHits": 0,
+    "logForbiddenHits": 0,
+    "ollamaBinaryPresent": false,
+    "processForbiddenHits": 0,
+    "repositoryForbiddenHits": 0
+  },
+  "imageDigests": {
+    "agent-runtime": "sha256:b6a035bfae920e89f1753e17e958861a2054902a0a4d7c1efde7844f64390a34",
+    "audit-replay-service": "sha256:e140b080f91e3549c73e3f7fbd1898cbf75b2d07134f83b56fd44a747fefa331",
+    "governance-service": "sha256:83b3d870088b50dd6fc04b3a3735a562e9110232a22bdcd356012c1751deda65",
+    "loan-service": "sha256:8d0ec64d538c5aec14f8d4f0145d99cf6a8aaf002c7a435881a34b40490841f1"
+  },
+  "knownLimitations": [],
+  "modelArtifactDigest": "sha256:1780b376723b52ad04630a474c6bd2eeddab2e89caa13956e76b356595ed79df",
+  "result": "PASS",
+  "timestamp": "2026-07-24T01:51:16.395443Z"
+}

@@ -29,6 +29,7 @@
       "image": "rippleguard-loan-service:1f78f8c3358f",
       "immutableTag": "1f78f8c3358f",
       "imageDigest": "sha256:8d0ec64d538c5aec14f8d4f0145d99cf6a8aaf002c7a435881a34b40490841f1",
+      "imageDigestKind": "localImageId",
       "ociLabels": {
         "org.opencontainers.image.revision": "1f78f8c3358fc0437b15f7b32ae8b2d4028a4800",
         "org.opencontainers.image.source": "https://github.com/dlsrnjs125/rippleguard-loan-service"
@@ -52,6 +53,7 @@
       "image": "rippleguard-governance-service:053206df5d11",
       "immutableTag": "053206df5d11",
       "imageDigest": "sha256:83b3d870088b50dd6fc04b3a3735a562e9110232a22bdcd356012c1751deda65",
+      "imageDigestKind": "localImageId",
       "ociLabels": {
         "org.opencontainers.image.revision": "053206df5d114b723bc6135642cbfcddeb54b2ba",
         "org.opencontainers.image.source": "https://github.com/dlsrnjs125/rippleguard-governance-service"
@@ -73,6 +75,7 @@
       "image": "rippleguard-agent-runtime:25e8c187ee80",
       "immutableTag": "25e8c187ee80",
       "imageDigest": "sha256:b6a035bfae920e89f1753e17e958861a2054902a0a4d7c1efde7844f64390a34",
+      "imageDigestKind": "localImageId",
       "ociLabels": {
         "org.opencontainers.image.revision": "25e8c187ee807f3a89055a5db2dbc18cb595a63e",
         "org.opencontainers.image.source": "https://github.com/dlsrnjs125/rippleguard-agent-runtime"
@@ -89,6 +92,7 @@
       "image": "rippleguard-audit-replay-service:e6baae0a1fef",
       "immutableTag": "e6baae0a1fef",
       "imageDigest": "sha256:e140b080f91e3549c73e3f7fbd1898cbf75b2d07134f83b56fd44a747fefa331",
+      "imageDigestKind": "localImageId",
       "ociLabels": {
         "org.opencontainers.image.revision": "e6baae0a1fefcbb32ccc2dbd02cae2da8b360581",
         "org.opencontainers.image.source": "https://github.com/dlsrnjs125/rippleguard-audit-replay-service"
@@ -121,6 +125,7 @@
     "loan.decision.finalized.v1"
   ],
   "runtimeImageDigest": "sha256:b6a035bfae920e89f1753e17e958861a2054902a0a4d7c1efde7844f64390a34",
+  "runtimeImageDigestKind": "localImageId",
   "publicationStatus": "BLOCKED",
   "knownBlockers": [
     {

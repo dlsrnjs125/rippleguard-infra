@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -62,6 +63,10 @@ def run(command: list[str], *, check: bool = True) -> subprocess.CompletedProces
     return subprocess.run(command, cwd=ROOT, check=check, capture_output=True, text=True)
 
 
+def run_text(command: list[str], *, check: bool = True) -> str:
+    return run(command, check=check).stdout
+
+
 def psql(service: str, user: str, db: str, sql: str) -> list[list[str]]:
     result = run(compose_args() + ["exec", "-T", service, "psql", "-U", user, "-d", db, "-At", "-F", "\t", "-c", sql])
     return [line.split("\t") for line in result.stdout.splitlines() if line.strip()]
@@ -109,6 +114,7 @@ def image_baseline() -> list[dict[str, Any]]:
                 "sourceCommit": service["sourceCommit"],
                 "image": service["image"],
                 "imageDigest": service["imageDigest"],
+                "imageDigestKind": service["imageDigestKind"],
                 "inspectedImageId": inspected["Id"],
                 "repoDigests": inspected.get("RepoDigests") or [],
                 "ociRevision": labels.get("org.opencontainers.image.revision"),
@@ -141,11 +147,29 @@ def manifest_baseline_context() -> dict[str, Any]:
                 "sourceCommit": service["sourceCommit"],
                 "image": service["image"],
                 "imageDigest": service["imageDigest"],
+                "imageDigestKind": service["imageDigestKind"],
                 "ociLabels": service["ociLabels"],
             }
             for service in manifest["services"]
         ],
     }
+
+
+def forbidden_llm_hits(text: str) -> list[str]:
+    patterns = [
+        re.compile(r"ollama", re.IGNORECASE),
+        re.compile(r"local[-_]?llm", re.IGNORECASE),
+        re.compile(r"llm[-_]?endpoint", re.IGNORECASE),
+        re.compile(r"\bOPENAI_[A-Z0-9_]*\b"),
+        re.compile(r"\bANTHROPIC_[A-Z0-9_]*\b"),
+        re.compile(r"chatgpt", re.IGNORECASE),
+        re.compile(r"langchain", re.IGNORECASE),
+    ]
+    hits: list[str] = []
+    for line in text.splitlines():
+        if any(pattern.search(line) for pattern in patterns):
+            hits.append(line[:240])
+    return hits
 
 
 def write_report(name: str, result: str, command: str, details: dict[str, Any]) -> None:
@@ -324,6 +348,85 @@ def static_gate(name: str, command: str, failure_classification: str, extra: dic
     write_report(name, "PASS", command, details)
 
 
+def local_llm_absent_checks(command: str) -> None:
+    manifest = load_manifest()
+    excluded = manifest.get("excludedRuntimeDependencies", {})
+    if excluded.get("localLlm") is not True or excluded.get("remoteLlm") is not True or excluded.get("fallbackModel") is not True:
+        raise RuntimeError("Phase 2 manifest must explicitly exclude local LLM, remote LLM, and fallback model")
+
+    compose_config = run_text(compose_args() + ["config", "--format", "json"])
+    compose_hits = forbidden_llm_hits(compose_config)
+    if compose_hits:
+        raise RuntimeError("Phase 2 compose config contains LLM wiring: " + "; ".join(compose_hits[:5]))
+
+    container_id = run_text(compose_args() + ["ps", "-q", "agent-runtime"]).strip()
+    if not container_id:
+        raise RuntimeError("agent-runtime container must be running for local LLM absence verification")
+
+    env_lines = run_text(["docker", "inspect", "--format", "{{range .Config.Env}}{{println .}}{{end}}", container_id])
+    env_hits = forbidden_llm_hits(env_lines)
+    if env_hits:
+        raise RuntimeError("Agent Runtime container environment contains LLM wiring: " + "; ".join(env_hits[:5]))
+
+    ollama_probe = run(compose_args() + ["exec", "-T", "agent-runtime", "sh", "-c", "command -v ollama"], check=False)
+    if ollama_probe.returncode == 0:
+        raise RuntimeError("Agent Runtime container has ollama installed at " + ollama_probe.stdout.strip())
+
+    process_probe = run(
+        compose_args() + ["exec", "-T", "agent-runtime", "sh", "-c", "ps -eo comm,args 2>/dev/null || true"],
+        check=False,
+    )
+    process_hits = forbidden_llm_hits(process_probe.stdout)
+    if process_hits:
+        raise RuntimeError("Agent Runtime process list contains LLM process/config: " + "; ".join(process_hits[:5]))
+
+    logs = run_text(compose_args() + ["logs", "--no-color", "--tail=200", "agent-runtime"], check=False)
+    log_hits = forbidden_llm_hits(logs)
+    if log_hits:
+        raise RuntimeError("Agent Runtime logs contain LLM call/config evidence: " + "; ".join(log_hits[:5]))
+
+    runtime_repo = Path(env("RIPPLEGUARD_AGENT_RUNTIME_REPO", str(ROOT / "../rippleguard-agent-runtime")))
+    if not runtime_repo.exists():
+        raise RuntimeError("Agent Runtime repository not found for LLM fallback scan: " + str(runtime_repo))
+    repo_probe = subprocess.run(
+        [
+            "rg",
+            "-n",
+            "ollama|openai|anthropic|llm|chatgpt|langchain",
+            "src",
+            "tests",
+            "pyproject.toml",
+            "README.md",
+            "artifacts",
+        ],
+        cwd=runtime_repo,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if repo_probe.returncode not in (0, 1):
+        raise RuntimeError("Agent Runtime repository LLM scan failed: " + repo_probe.stderr.strip())
+    repo_hits = [line[:240] for line in repo_probe.stdout.splitlines() if line.strip()]
+    if repo_hits:
+        raise RuntimeError("Agent Runtime repository contains fallback/LLM wiring: " + "; ".join(repo_hits[:5]))
+
+    write_report(
+        "local-llm-absent",
+        "PASS",
+        command,
+        {
+            "composeConfigForbiddenHits": 0,
+            "containerEnvForbiddenHits": 0,
+            "ollamaBinaryPresent": False,
+            "processForbiddenHits": 0,
+            "logForbiddenHits": 0,
+            "repositoryForbiddenHits": 0,
+            "agentRuntimeContainerId": container_id,
+            "baseline": manifest_baseline_context(),
+        },
+    )
+
+
 def blocked_drill(name: str, command: str, failure_classification: str) -> None:
     write_report(
         name,
@@ -375,7 +478,7 @@ def main() -> int:
             artifact_checks(command)
             return 0
         if args.check == "phase2-local-llm-absent-check":
-            static_gate("local-llm-absent", command, "LOCAL_LLM_ABSENT", {"localLlm": False, "remoteLlm": False})
+            local_llm_absent_checks(command)
             return 0
 
         mapping = {

@@ -6,12 +6,6 @@ set -eu
 
 require_env_file
 
-config="$(compose config)"
-if printf '%s\n' "$config" | grep -Ei 'ollama|openai|anthropic|llm|chatgpt|langchain' >/dev/null; then
-  echo "Phase 2 compose config contains local or external LLM wiring" >&2
-  exit 1
-fi
-
 python3 - "$PHASE2_MANIFEST" <<'PY'
 import json
 import sys

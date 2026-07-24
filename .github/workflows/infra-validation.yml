@@ -21,6 +21,7 @@ jobs:
       - run: python3 scripts/validate-phase1-manifest.py
       - run: python3 scripts/validate-phase2-manifest.py
       - run: python3 -m py_compile scripts/phase2_e2e.py scripts/validate-phase2-manifest.py scripts/verify-phase2-images.py
+      - run: python3 scripts/test_phase2_llm_patterns.py
       - run: find scripts -name '*.sh' -print0 | xargs -0 -n1 sh -n
       - run: python3 scripts/check-topic-contracts.py
       - run: ./scripts/check-secrets.sh

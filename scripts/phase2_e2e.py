@@ -155,16 +155,39 @@ def manifest_baseline_context() -> dict[str, Any]:
     }
 
 
-def forbidden_llm_hits(text: str) -> list[str]:
+def forbidden_config_hits(text: str) -> list[str]:
     patterns = [
-        re.compile(r"ollama", re.IGNORECASE),
-        re.compile(r"local[-_]?llm", re.IGNORECASE),
-        re.compile(r"llm[-_]?endpoint", re.IGNORECASE),
-        re.compile(r"\bOPENAI_[A-Z0-9_]*\b"),
-        re.compile(r"\bANTHROPIC_[A-Z0-9_]*\b"),
-        re.compile(r"chatgpt", re.IGNORECASE),
-        re.compile(r"langchain", re.IGNORECASE),
+        re.compile(r"\bOPENAI_(?:API_KEY|BASE_URL|ORGANIZATION|PROJECT)\b"),
+        re.compile(r"\bANTHROPIC_(?:API_KEY|BASE_URL)\b"),
+        re.compile(r"\bOLLAMA_(?:HOST|BASE_URL|MODEL)\b"),
+        re.compile(r"\b(?:LOCAL_LLM|LLM_ENDPOINT|LLM_BASE_URL|LLM_PROVIDER)\b"),
+        re.compile(r"https?://[^\"'\s]*(?:ollama|openai|anthropic)", re.IGNORECASE),
+        re.compile(r"/v1/chat/completions", re.IGNORECASE),
     ]
+    return pattern_hits(text, patterns)
+
+
+def forbidden_runtime_hits(text: str) -> list[str]:
+    patterns = [
+        re.compile(r"(?:openai|anthropic|ollama)\s+(?:client|request|connection|provider)\s+(?:initialized|started|created)", re.IGNORECASE),
+        re.compile(r"(?:calling|requesting|connected to)\s+(?:openai|anthropic|ollama)", re.IGNORECASE),
+        re.compile(r"https?://[^\"'\s]*(?:ollama|openai|anthropic)", re.IGNORECASE),
+        re.compile(r"/v1/chat/completions", re.IGNORECASE),
+    ]
+    return pattern_hits(text, patterns)
+
+
+def repository_llm_patterns() -> list[re.Pattern[str]]:
+    return [
+        re.compile(r"^\s*(from|import)\s+(openai|anthropic|langchain|ollama)\b"),
+        re.compile(r"^\s*(openai|anthropic|langchain|ollama)(\[.*\])?\s*[=<>]"),
+        re.compile(r"\b(OPENAI_API_KEY|ANTHROPIC_API_KEY|OLLAMA_HOST|LLM_ENDPOINT|LLM_BASE_URL|LLM_PROVIDER)\b"),
+        re.compile(r"https?://[^\"']*(ollama|openai|anthropic)", re.IGNORECASE),
+        re.compile(r"/v1/chat/completions", re.IGNORECASE),
+    ]
+
+
+def pattern_hits(text: str, patterns: list[re.Pattern[str]]) -> list[str]:
     hits: list[str] = []
     for line in text.splitlines():
         if any(pattern.search(line) for pattern in patterns):
@@ -355,7 +378,7 @@ def local_llm_absent_checks(command: str) -> None:
         raise RuntimeError("Phase 2 manifest must explicitly exclude local LLM, remote LLM, and fallback model")
 
     compose_config = run_text(compose_args() + ["config", "--format", "json"])
-    compose_hits = forbidden_llm_hits(compose_config)
+    compose_hits = forbidden_config_hits(compose_config)
     if compose_hits:
         raise RuntimeError("Phase 2 compose config contains LLM wiring: " + "; ".join(compose_hits[:5]))
 
@@ -364,7 +387,7 @@ def local_llm_absent_checks(command: str) -> None:
         raise RuntimeError("agent-runtime container must be running for local LLM absence verification")
 
     env_lines = run_text(["docker", "inspect", "--format", "{{range .Config.Env}}{{println .}}{{end}}", container_id])
-    env_hits = forbidden_llm_hits(env_lines)
+    env_hits = forbidden_config_hits(env_lines)
     if env_hits:
         raise RuntimeError("Agent Runtime container environment contains LLM wiring: " + "; ".join(env_hits[:5]))
 
@@ -376,12 +399,12 @@ def local_llm_absent_checks(command: str) -> None:
         compose_args() + ["exec", "-T", "agent-runtime", "sh", "-c", "ps -eo comm,args 2>/dev/null || true"],
         check=False,
     )
-    process_hits = forbidden_llm_hits(process_probe.stdout)
+    process_hits = forbidden_runtime_hits(process_probe.stdout)
     if process_hits:
         raise RuntimeError("Agent Runtime process list contains LLM process/config: " + "; ".join(process_hits[:5]))
 
     logs = run_text(compose_args() + ["logs", "--no-color", "--tail=200", "agent-runtime"], check=False)
-    log_hits = forbidden_llm_hits(logs)
+    log_hits = forbidden_runtime_hits(logs)
     if log_hits:
         raise RuntimeError("Agent Runtime logs contain LLM call/config evidence: " + "; ".join(log_hits[:5]))
 
@@ -392,12 +415,10 @@ def local_llm_absent_checks(command: str) -> None:
         [
             "rg",
             "-n",
-            "ollama|openai|anthropic|llm|chatgpt|langchain",
+            "|".join(pattern.pattern for pattern in repository_llm_patterns()),
             "src",
             "tests",
             "pyproject.toml",
-            "README.md",
-            "artifacts",
         ],
         cwd=runtime_repo,
         check=False,

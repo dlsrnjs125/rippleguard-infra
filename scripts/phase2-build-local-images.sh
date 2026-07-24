@@ -110,6 +110,7 @@ build_service() {
 
   echo "Building $image"
   docker build \
+    --provenance=false \
     --build-arg "OCI_REVISION=$expected_commit" \
     --build-arg "OCI_SOURCE=$source_url" \
     -t "$image" \

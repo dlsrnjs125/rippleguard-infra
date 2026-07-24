@@ -1,0 +1,96 @@
+{
+  "command": "make phase2-e2e",
+  "commitBaseline": {
+    "repository": "dlsrnjs125/rippleguard-contracts",
+    "schemaSet": "phase2-loan-decision",
+    "sourceCommit": "751f43c88c1bef860c76398eed24b3d60225b931"
+  },
+  "details": {
+    "apiIdentifiers": {
+      "agentRunId": "e88897c6-150b-4a09-b983-ed352604840d",
+      "applicationId": "5e98838f-3896-4388-b695-9743a8d6727c",
+      "caseId": "case-5e98838f-3896-4388-b695-9743a8d6727c",
+      "evaluationRunId": "57e78a22-f2ee-4ada-96da-049613ac8804",
+      "requestEventId": "2a1280e5-2398-45e6-9b49-d146aa048098",
+      "validationEventId": "d343bf8f-ac52-4068-a4c6-54ac2c017ece"
+    },
+    "audit": {
+      "agentRun": {
+        "agentResultDigest": "sha256:e8e643cfe44ed04cfd45809d60f3699b2f1ce1150abbf0e7465653da0f1160d6",
+        "agentResultReference": "agent-result://case-5e98838f-3896-4388-b695-9743a8d6727c/e88897c6-150b-4a09-b983-ed352604840d/attempt-1",
+        "agentRunId": "e88897c6-150b-4a09-b983-ed352604840d",
+        "attemptCount": 1,
+        "attempts": [
+          {
+            "attemptId": 1,
+            "attemptStatus": "VALIDATED",
+            "completedAt": "2026-07-24T03:02:50.202303Z",
+            "failureClassification": null,
+            "failureReasonCode": null,
+            "resultDigest": "sha256:e8e643cfe44ed04cfd45809d60f3699b2f1ce1150abbf0e7465653da0f1160d6",
+            "sourceEventId": "d343bf8f-ac52-4068-a4c6-54ac2c017ece",
+            "startedAt": null
+          }
+        ],
+        "decisionCaseId": "case-5e98838f-3896-4388-b695-9743a8d6727c",
+        "evaluationRunId": "57e78a22-f2ee-4ada-96da-049613ac8804",
+        "featureSchemaVersion": null,
+        "latestAttemptId": 1,
+        "modelArtifactDigest": null,
+        "modelVersion": null,
+        "preprocessingVersion": null,
+        "snapshotDigest": null,
+        "snapshotId": null,
+        "snapshotSchemaVersion": null,
+        "snapshotVersion": null,
+        "sourceEventId": "d343bf8f-ac52-4068-a4c6-54ac2c017ece",
+        "sourceSchemaVersion": "1.0.0",
+        "thresholdVersion": null,
+        "validatedAt": "2026-07-24T03:02:50.202303Z",
+        "validationOutcome": "VALIDATED",
+        "validationReasonCodes": [
+          "SCHEMA_VALID",
+          "MODEL_PROVENANCE_VALID",
+          "SNAPSHOT_MATCHED",
+          "SHAP_PRESENT"
+        ]
+      },
+      "timelineEvents": [
+        "loan.application.submitted.v1",
+        "governance.review.started.v1",
+        "agent.evaluation.requested.v1",
+        "governance.agent-result.validated.v1"
+      ]
+    },
+    "causation": {
+      "requestEventId": "2a1280e5-2398-45e6-9b49-d146aa048098",
+      "validationCausationId": "2a1280e5-2398-45e6-9b49-d146aa048098",
+      "validationCausationIsAgentRunId": false
+    },
+    "governance": {
+      "status": "PROPOSAL_READY",
+      "validationOutcome": "VALIDATED"
+    },
+    "loanFinalState": {
+      "governanceCommandedEventsForApplication": 0,
+      "loanFinalizedEventsForApplication": 0,
+      "status": "UNDER_GOVERNANCE_REVIEW"
+    },
+    "snapshot": {
+      "featurePayloadDigest": "sha256:d8c3c7571f963596f6fff822f750cc74b4a7370677ccf1bbc3a0b84b01604f0a",
+      "snapshotDigest": "sha256:d8c3c7571f963596f6fff822f750cc74b4a7370677ccf1bbc3a0b84b01604f0a",
+      "snapshotId": "2d688051-ecec-4ea7-bef8-73c02d75c678",
+      "snapshotVersion": "snapshot-v1"
+    }
+  },
+  "imageDigests": {
+    "agent-runtime": "sha256:fcc4ae3a47ebd6d0d2c7c769f4f792c4c8999dcf35938ca9429e40d1c40c3733",
+    "audit-replay-service": "sha256:2e76510aeeff820b44769cbf922bebf511b71f46633556184daf7ce435fce4cf",
+    "governance-service": "sha256:1d06b97a48411e0df2dc126e7a4edc167c2e4982e54caa5ecf2951d0a363ea55",
+    "loan-service": "sha256:6b2f0f337eb613185e5b2968bad9bd8e400d2262becc0d25158f1e0f286d1d0a"
+  },
+  "knownLimitations": [],
+  "modelArtifactDigest": "sha256:1780b376723b52ad04630a474c6bd2eeddab2e89caa13956e76b356595ed79df",
+  "result": "PASS",
+  "timestamp": "2026-07-24T03:02:53.311869Z"
+}

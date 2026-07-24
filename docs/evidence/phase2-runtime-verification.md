@@ -6,68 +6,49 @@ Infra changes are limited to `rippleguard-infra`.
 
 Pinned source commits:
 
-- `rippleguard-contracts`: `f4012e8b5a0dcd5605b61652a5c39deacb14454b`
-- `rippleguard-loan-service`: `e403c0a60ccb464545a6b68d761d0bf8c05f7435`
-- `rippleguard-governance-service`: `6e5dee34a01429ac017774fcd7a238e2f1415481`
-- `rippleguard-agent-runtime`: `35121627550e5999a084c123b610f47884aa01f7`
-- `rippleguard-audit-replay-service`: `f3162d3bf3ea2bcfd8d40c929607a84d88054082`
+- `rippleguard-contracts`: `751f43c88c1bef860c76398eed24b3d60225b931`
+- `rippleguard-loan-service`: `948e1039b249558683ed1a0276d054f4c56ccafe`
+- `rippleguard-governance-service`: `053206df5d114b723bc6135642cbfcddeb54b2ba`
+- `rippleguard-agent-runtime`: `25e8c187ee807f3a89055a5db2dbc18cb595a63e`
+- `rippleguard-audit-replay-service`: `e6baae0a1fefcbb32ccc2dbd02cae2da8b360581`
 
-## Current Validation Status
+## Image Baseline
 
-Static infra validation:
+- `loan-service`: `rippleguard-loan-service:948e1039b249`, local image ID `sha256:6b2f0f337eb613185e5b2968bad9bd8e400d2262becc0d25158f1e0f286d1d0a`
+- `governance-service`: `rippleguard-governance-service:053206df5d11`, local image ID `sha256:1d06b97a48411e0df2dc126e7a4edc167c2e4982e54caa5ecf2951d0a363ea55`
+- `agent-runtime`: `rippleguard-agent-runtime:25e8c187ee80`, local image ID `sha256:fcc4ae3a47ebd6d0d2c7c769f4f792c4c8999dcf35938ca9429e40d1c40c3733`
+- `audit-replay-service`: `rippleguard-audit-replay-service:e6baae0a1fef`, local image ID `sha256:2e76510aeeff820b44769cbf922bebf511b71f46633556184daf7ce435fce4cf`
 
-```bash
-make validate-static
-```
+These are local Docker Compose verification image IDs, not production registry digests.
 
-Phase 2 manifest validation:
+## Validation Status
 
-```bash
-python3 scripts/validate-phase2-manifest.py
-```
+Static and preflight gates validate:
 
-Phase 2 scaffolding validation:
+- sibling checkout source commits
+- clean sibling source trees before image build
+- contract and model artifact digests
+- read-only contract and model artifact mounts
+- commit-based image tags
+- OCI source and revision labels
+- local image IDs
 
-```bash
-make phase2-scaffold-check
-```
+Runtime gates validate:
 
-Expected result with sibling repositories and artifacts available:
+- service health and HTTP readiness
+- absence of local or remote LLM wiring in compose, container environment, process list, logs, and Agent Runtime source/dependency wiring
+- happy path through Loan, Governance, Agent Runtime, Audit, Kafka, and PostgreSQL
+- request-to-validation event causation where `validation.causationId == request.eventId`
+- `validation.causationId != agentRunId`
+- reproducibility baseline digests
 
-- Passes source checkout, manifest, artifact digest, compose config, and rendered mount source checks.
+## Publication Status
 
-Phase 2 image provenance validation:
-
-```bash
-make phase2-verify-images
-```
-
-Expected current blocker:
-
-- `rippleguard-agent-runtime:35121627550e` cannot pass OCI label verification until the Agent Runtime Dockerfile emits `org.opencontainers.image.revision` and `org.opencontainers.image.source`.
-- Phase 2 service images do not have pinned registry digests yet, so image verification must fail rather than skip immutable image identity verification.
-
-Phase 2 E2E:
-
-```bash
-make phase2-e2e
-```
-
-Expected current result:
-
-- `BLOCKED`
+The Phase 2 release manifest remains `BLOCKED`.
 
 Reason:
 
-- The current Loan event path does not publish the materialized Phase 2 feature payload required by Agent Runtime.
-- Governance emits a contract-valid immutable snapshot reference, but Agent Runtime currently expects concrete feature input.
-- Infra must not replace that production path with mock payloads, fixture-only shortcuts, local LLMs, fallback models, or synthetic success.
+- The happy path can be exercised with the current service baseline.
+- The required failure drills still need real runtime failure injection. Static `BLOCKED` reports are intentionally not accepted as release evidence.
 
-## Required Follow-Up
-
-The Phase 2 happy path can be promoted from blocked to executable after one of these upstream changes lands:
-
-- Loan/Governance provides a production feature snapshot provider for Phase 2.
-- Agent Runtime resolves immutable snapshot references through an approved production data path.
-
-After that, update `scripts/phase2-e2e.sh` to submit a real loan application, wait for Governance validation, and verify Audit Agent Run timeline projections.
+The manifest may be promoted to `PUBLISHED` only after every required failure drill passes with real service/API/container/artifact evidence.

@@ -25,13 +25,13 @@
       "name": "loan-service",
       "repository": "dlsrnjs125/rippleguard-loan-service",
       "sourceUrl": "https://github.com/dlsrnjs125/rippleguard-loan-service",
-      "sourceCommit": "1f78f8c3358fc0437b15f7b32ae8b2d4028a4800",
-      "image": "rippleguard-loan-service:1f78f8c3358f",
-      "immutableTag": "1f78f8c3358f",
-      "imageDigest": "sha256:8d0ec64d538c5aec14f8d4f0145d99cf6a8aaf002c7a435881a34b40490841f1",
+      "sourceCommit": "948e1039b249558683ed1a0276d054f4c56ccafe",
+      "image": "rippleguard-loan-service:948e1039b249",
+      "immutableTag": "948e1039b249",
+      "imageDigest": "sha256:6b2f0f337eb613185e5b2968bad9bd8e400d2262becc0d25158f1e0f286d1d0a",
       "imageDigestKind": "localImageId",
       "ociLabels": {
-        "org.opencontainers.image.revision": "1f78f8c3358fc0437b15f7b32ae8b2d4028a4800",
+        "org.opencontainers.image.revision": "948e1039b249558683ed1a0276d054f4c56ccafe",
         "org.opencontainers.image.source": "https://github.com/dlsrnjs125/rippleguard-loan-service"
       },
       "contractCommit": "751f43c88c1bef860c76398eed24b3d60225b931",
@@ -52,7 +52,7 @@
       "sourceCommit": "053206df5d114b723bc6135642cbfcddeb54b2ba",
       "image": "rippleguard-governance-service:053206df5d11",
       "immutableTag": "053206df5d11",
-      "imageDigest": "sha256:83b3d870088b50dd6fc04b3a3735a562e9110232a22bdcd356012c1751deda65",
+      "imageDigest": "sha256:1d06b97a48411e0df2dc126e7a4edc167c2e4982e54caa5ecf2951d0a363ea55",
       "imageDigestKind": "localImageId",
       "ociLabels": {
         "org.opencontainers.image.revision": "053206df5d114b723bc6135642cbfcddeb54b2ba",
@@ -74,7 +74,7 @@
       "sourceCommit": "25e8c187ee807f3a89055a5db2dbc18cb595a63e",
       "image": "rippleguard-agent-runtime:25e8c187ee80",
       "immutableTag": "25e8c187ee80",
-      "imageDigest": "sha256:b6a035bfae920e89f1753e17e958861a2054902a0a4d7c1efde7844f64390a34",
+      "imageDigest": "sha256:fcc4ae3a47ebd6d0d2c7c769f4f792c4c8999dcf35938ca9429e40d1c40c3733",
       "imageDigestKind": "localImageId",
       "ociLabels": {
         "org.opencontainers.image.revision": "25e8c187ee807f3a89055a5db2dbc18cb595a63e",
@@ -91,7 +91,7 @@
       "sourceCommit": "e6baae0a1fefcbb32ccc2dbd02cae2da8b360581",
       "image": "rippleguard-audit-replay-service:e6baae0a1fef",
       "immutableTag": "e6baae0a1fef",
-      "imageDigest": "sha256:e140b080f91e3549c73e3f7fbd1898cbf75b2d07134f83b56fd44a747fefa331",
+      "imageDigest": "sha256:2e76510aeeff820b44769cbf922bebf511b71f46633556184daf7ce435fce4cf",
       "imageDigestKind": "localImageId",
       "ociLabels": {
         "org.opencontainers.image.revision": "e6baae0a1fefcbb32ccc2dbd02cae2da8b360581",
@@ -124,17 +124,10 @@
     "loan.decision.commanded.v1",
     "loan.decision.finalized.v1"
   ],
-  "runtimeImageDigest": "sha256:b6a035bfae920e89f1753e17e958861a2054902a0a4d7c1efde7844f64390a34",
+  "runtimeImageDigest": "sha256:fcc4ae3a47ebd6d0d2c7c769f4f792c4c8999dcf35938ca9429e40d1c40c3733",
   "runtimeImageDigestKind": "localImageId",
   "publicationStatus": "BLOCKED",
   "knownBlockers": [
-    {
-      "reason": "SNAPSHOT_CREATED_AT_PRECISION_MISMATCH",
-      "classification": "SNAPSHOT_DIGEST_MISMATCH",
-      "status": "BLOCKED",
-      "description": "Loan persists created_at at PostgreSQL microsecond precision while snapshotReference.snapshotCreatedAt preserves nanosecond precision. Governance compares the API identity and reference identity strictly, so the happy path blocks before PROPOSAL_READY.",
-      "requiredFix": "Align Loan Service snapshot reference creation with the persisted createdAt identity, or normalize the persisted identity before Governance verification without weakening digest validation."
-    },
     {
       "reason": "FAILURE_DRILLS_REQUIRE_REAL_INJECTION",
       "status": "BLOCKED",
@@ -143,7 +136,7 @@
   ],
   "verification": {
     "status": "FAILED",
-    "attemptedAt": "2026-07-23T11:57:40+09:00",
+    "attemptedAt": "2026-07-24T03:02:54.768409Z",
     "attemptedCommands": [
       {
         "command": "make validate-static",
@@ -158,9 +151,41 @@
         "result": "PASS"
       },
       {
+        "command": "make phase2-scaffold-check",
+        "result": "PASS"
+      },
+      {
+        "command": "make phase2-preflight",
+        "result": "PASS"
+      },
+      {
+        "command": "make phase2-build-images",
+        "result": "PASS"
+      },
+      {
+        "command": "make phase2-up",
+        "result": "PASS"
+      },
+      {
+        "command": "make phase2-check",
+        "result": "PASS"
+      },
+      {
+        "command": "make phase2-local-llm-absent-check",
+        "result": "PASS"
+      },
+      {
+        "command": "make phase2-e2e",
+        "result": "PASS"
+      },
+      {
+        "command": "make phase2-reproducibility-check",
+        "result": "PASS"
+      },
+      {
         "command": "make phase2-verify",
         "result": "FAIL",
-        "failure": "SNAPSHOT_DIGEST_MISMATCH before PROPOSAL_READY"
+        "failure": "10 failure drill gates return exit code 2 because real failure injection is not implemented"
       }
     ],
     "evidenceDirectory": "evidence/phase2",

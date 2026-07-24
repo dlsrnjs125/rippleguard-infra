@@ -1,0 +1,29 @@
+{
+  "command": "make phase2-reproducibility-check",
+  "commitBaseline": {
+    "repository": "dlsrnjs125/rippleguard-contracts",
+    "schemaSet": "phase2-loan-decision",
+    "sourceCommit": "751f43c88c1bef860c76398eed24b3d60225b931"
+  },
+  "details": {
+    "expected": {
+      "modelArtifactDigest": "sha256:1780b376723b52ad04630a474c6bd2eeddab2e89caa13956e76b356595ed79df",
+      "modelManifestDigest": "sha256:feae355ac937e43be18069d6390936d1c4b8630deea92333d6e6de15c514b9e7",
+      "thresholdManifestDigest": "sha256:c3a7e45bd4c65e57d3fb935e08213b16d144a4674365c16c0eedfce7c6b4e4ea"
+    },
+    "fallbackModel": false,
+    "modelArtifactDigest": "sha256:1780b376723b52ad04630a474c6bd2eeddab2e89caa13956e76b356595ed79df",
+    "modelManifestDigest": "sha256:feae355ac937e43be18069d6390936d1c4b8630deea92333d6e6de15c514b9e7",
+    "thresholdManifestDigest": "sha256:c3a7e45bd4c65e57d3fb935e08213b16d144a4674365c16c0eedfce7c6b4e4ea"
+  },
+  "imageDigests": {
+    "agent-runtime": "sha256:fcc4ae3a47ebd6d0d2c7c769f4f792c4c8999dcf35938ca9429e40d1c40c3733",
+    "audit-replay-service": "sha256:2e76510aeeff820b44769cbf922bebf511b71f46633556184daf7ce435fce4cf",
+    "governance-service": "sha256:1d06b97a48411e0df2dc126e7a4edc167c2e4982e54caa5ecf2951d0a363ea55",
+    "loan-service": "sha256:6b2f0f337eb613185e5b2968bad9bd8e400d2262becc0d25158f1e0f286d1d0a"
+  },
+  "knownLimitations": [],
+  "modelArtifactDigest": "sha256:1780b376723b52ad04630a474c6bd2eeddab2e89caa13956e76b356595ed79df",
+  "result": "PASS",
+  "timestamp": "2026-07-24T03:02:54.689500Z"
+}

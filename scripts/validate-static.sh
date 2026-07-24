@@ -45,7 +45,7 @@ RIPPLEGUARD_LOAN_REPO=/tmp/rippleguard-loan-service
 RIPPLEGUARD_GOVERNANCE_REPO=/tmp/rippleguard-governance-service
 RIPPLEGUARD_AGENT_RUNTIME_REPO=/tmp/rippleguard-agent-runtime
 RIPPLEGUARD_AUDIT_REPO=/tmp/rippleguard-audit-replay-service
-LOAN_SERVICE_IMAGE=rippleguard-loan-service:1f78f8c3358f
+LOAN_SERVICE_IMAGE=rippleguard-loan-service:948e1039b249
 GOVERNANCE_SERVICE_IMAGE=rippleguard-governance-service:053206df5d11
 AUDIT_SERVICE_IMAGE=rippleguard-audit-replay-service:e6baae0a1fef
 AGENT_RUNTIME_IMAGE=rippleguard-agent-runtime:25e8c187ee80
@@ -118,7 +118,13 @@ python3 -m json.tool "$ROOT_DIR/manifests/phase2-loan-decision.json" >/dev/null
 python3 "$ROOT_DIR/scripts/check-topic-contracts.py"
 python3 "$ROOT_DIR/scripts/validate-phase1-manifest.py"
 python3 "$ROOT_DIR/scripts/validate-phase2-manifest.py"
-python3 -m py_compile "$ROOT_DIR/scripts/verify-phase1-images.py" "$ROOT_DIR/scripts/verify-phase2-images.py" "$ROOT_DIR/scripts/validate-timeline-privacy.py"
+python3 -m py_compile \
+  "$ROOT_DIR/scripts/verify-phase1-images.py" \
+  "$ROOT_DIR/scripts/verify-phase2-images.py" \
+  "$ROOT_DIR/scripts/validate-timeline-privacy.py" \
+  "$ROOT_DIR/scripts/phase2_e2e.py" \
+  "$ROOT_DIR/scripts/test_phase2_llm_patterns.py"
+python3 "$ROOT_DIR/scripts/test_phase2_llm_patterns.py"
 "$ROOT_DIR/scripts/check-secrets.sh"
 
 echo "Static infra validation passed"

@@ -1,12 +1,11 @@
 {
-  "command": "make phase2-local-llm-absent-check",
+  "command": "make phase2-duplicate-request-check",
   "commitBaseline": {
     "repository": "dlsrnjs125/rippleguard-contracts",
     "schemaSet": "phase2-loan-decision",
     "sourceCommit": "751f43c88c1bef860c76398eed24b3d60225b931"
   },
   "details": {
-    "agentRuntimeContainerId": "f6a4795998ced0ae0ee8f8161dea9df8c0b0040e3a719e9de78642f32e0c1a37",
     "baseline": {
       "contractBaseline": {
         "repository": "dlsrnjs125/rippleguard-contracts",
@@ -80,12 +79,9 @@
         }
       ]
     },
-    "composeConfigForbiddenHits": 0,
-    "containerEnvForbiddenHits": 0,
-    "logForbiddenHits": 0,
-    "ollamaBinaryPresent": false,
-    "processForbiddenHits": 0,
-    "repositoryForbiddenHits": 0
+    "failureClassification": "DUPLICATE_REQUEST_IDEMPOTENT",
+    "reason": "REAL_FAILURE_INJECTION_NOT_IMPLEMENTED",
+    "required": "This drill must exercise real service/API/container/artifact behavior. Static PASS evidence is intentionally rejected."
   },
   "imageDigests": {
     "agent-runtime": "sha256:fcc4ae3a47ebd6d0d2c7c769f4f792c4c8999dcf35938ca9429e40d1c40c3733",
@@ -95,6 +91,6 @@
   },
   "knownLimitations": [],
   "modelArtifactDigest": "sha256:1780b376723b52ad04630a474c6bd2eeddab2e89caa13956e76b356595ed79df",
-  "result": "PASS",
-  "timestamp": "2026-07-24T03:02:48.149250Z"
+  "result": "BLOCKED",
+  "timestamp": "2026-07-24T03:02:53.690323Z"
 }

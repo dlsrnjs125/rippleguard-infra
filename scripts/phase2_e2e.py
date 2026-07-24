@@ -414,13 +414,39 @@ def happy_path(command: str) -> dict[str, Any]:
         timeout_seconds=120,
     )
     loan_final = http_json("GET", f"{loan_url}/api/v1/loan-applications/{application_id}")
+    governance_commanded_count = int(
+        psql(
+            "governance-postgres",
+            env("GOVERNANCE_POSTGRES_USER", "rippleguard_governance"),
+            env("GOVERNANCE_POSTGRES_DB", "rippleguard_governance"),
+            "select count(*) from outbox_event "
+            "where event_type = 'loan.decision.commanded.v1' "
+            f"and aggregate_id = '{application_id}'",
+        )[0][0]
+    )
+    loan_finalized_count = int(
+        psql(
+            "loan-postgres",
+            env("LOAN_POSTGRES_USER", "rippleguard_loan"),
+            env("LOAN_POSTGRES_DB", "rippleguard_loan"),
+            "select count(*) from outbox_event "
+            "where event_type = 'loan.decision.finalized.v1' "
+            f"and aggregate_id = '{application_id}'",
+        )[0][0]
+    )
     request_event = next(event for event in timeline["events"] if event["eventType"] == "agent.evaluation.requested.v1")
     validation_event = next(
         event for event in timeline["events"] if event["eventType"] == "governance.agent-result.validated.v1"
     )
-    assert validation_event["causationId"] == request_event["eventId"] == request_event_id
-    assert validation_event["causationId"] != agent_run_id
-    assert loan_final["status"] == "SUBMITTED"
+    assert validation_event["causationId"] == request_event["eventId"] == request_event_id, (
+        "validation causation must point to persisted request event"
+    )
+    assert validation_event["causationId"] != agent_run_id, "validation causation must not use agentRunId"
+    assert governance_commanded_count == 0, "Governance must not publish loan.decision.commanded for Phase 2 proposal"
+    assert loan_finalized_count == 0, "Loan must not publish loan.decision.finalized for Phase 2 proposal"
+    assert loan_final["status"] in {"SUBMITTED", "UNDER_GOVERNANCE_REVIEW"}, (
+        "Loan must remain non-final after Phase 2 proposal"
+    )
 
     return {
         "apiIdentifiers": {
@@ -444,7 +470,11 @@ def happy_path(command: str) -> dict[str, Any]:
             "validationCausationId": validation_event["causationId"],
             "validationCausationIsAgentRunId": validation_event["causationId"] == agent_run_id,
         },
-        "loanFinalStatus": loan_final["status"],
+        "loanFinalState": {
+            "status": loan_final["status"],
+            "governanceCommandedEventsForApplication": governance_commanded_count,
+            "loanFinalizedEventsForApplication": loan_finalized_count,
+        },
     }
 
 
